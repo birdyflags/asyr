@@ -192,63 +192,87 @@ function ASYR:CreateWindow(options)
     
     local ScreenGui = Create("ScreenGui", {Name = "ASYR_Interface", Parent = CoreGui})
     
-    -- Loading Screen
-    local LoadingFrame = Create("Frame", {
-        Parent = ScreenGui,
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(10, 10, 10),
-        ZIndex = 100
-    })
-    
-    local Logo = Create("TextLabel", {
-        Parent = LoadingFrame,
-        Text = LoadingTitle,
-        Font = Enum.Font.GothamBold,
-        TextSize = 32,
-        TextColor3 = Library.Theme.Accent,
-        Size = UDim2.new(1, 0, 0, 40),
-        Position = UDim2.new(0, 0, 0.45, 0),
-        BackgroundTransparency = 1,
-        TextTransparency = 1
-    })
-    
-    local SubLogo = Create("TextLabel", {
-        Parent = LoadingFrame,
-        Text = LoadingSubtitle,
-        Font = Enum.Font.Gotham,
-        TextSize = 16,
-        TextColor3 = Color3.fromRGB(150, 150, 150),
-        Size = UDim2.new(1, 0, 0, 20),
-        Position = UDim2.new(0, 0, 0.52, 0),
-        BackgroundTransparency = 1,
-        TextTransparency = 1
-    })
-    
-    -- Loading Animation
-    task.spawn(function()
-        DoTween(Logo, {TextTransparency = 0, Position = UDim2.new(0, 0, 0.4, 0)}, 1)
-        task.wait(0.5)
-        DoTween(SubLogo, {TextTransparency = 0, Position = UDim2.new(0, 0, 0.48, 0)}, 1)
-        task.wait(2)
-        DoTween(Logo, {TextTransparency = 1, Position = UDim2.new(0, 0, 0.35, 0)}, 0.5)
-        DoTween(SubLogo, {TextTransparency = 1, Position = UDim2.new(0, 0, 0.43, 0)}, 0.5)
-        DoTween(LoadingFrame, {BackgroundTransparency = 1}, 0.5)
-        task.wait(0.5)
-        LoadingFrame:Destroy()
-    end)
-    
-    -- Main Frame
+    -- Main Frame (Created early for Intro)
     local Main = Create("Frame", {
         Name = "Main",
         Parent = ScreenGui,
-        Size = UDim2.new(0, 700, 0, 500),
+        Size = UDim2.new(0, 700, 0, 0), -- Start with 0 height
         Position = UDim2.new(0.5, -350, 0.5, -250),
         BackgroundColor3 = Library.Theme.Background,
-        BackgroundTransparency = 0.1,
+        BackgroundTransparency = 1, -- Start transparent
         ClipsDescendants = true
     })
     ApplyRoundedCorner(Main, UDim.new(0, 10))
     ApplyStroke(Main, Library.Theme.Stroke, 1)
+
+    -- Intro Elements
+    local IntroText = options.IntroText or options.LoadingTitle or "ASYR Interface"
+    local IntroIcon = options.IntroIcon or "rbxassetid://12345678" -- Default icon if not provided
+
+    local IntroLabel = Create("TextLabel", {
+        Name = "IntroText",
+        Parent = Main,
+        BackgroundColor3 = Library.Theme.Background,
+        BackgroundTransparency = 1,
+        TextTransparency = 1,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, -40),
+        Size = UDim2.new(0, 200, 0, 20),
+        Font = Enum.Font.GothamBold,
+        Text = IntroText,
+        TextColor3 = Library.Theme.Text,
+        TextSize = 18,
+        ZIndex = 10,
+        TextXAlignment = Enum.TextXAlignment.Center
+    })
+
+    local IntroImage = Create("ImageLabel", {
+        Name = "IntroImage",
+        Parent = Main,
+        BackgroundColor3 = Library.Theme.Element,
+        BackgroundTransparency = 1,
+        ImageTransparency = 1,
+        BorderSizePixel = 0,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 20),
+        ZIndex = 10,
+        Size = UDim2.new(0, 100, 0, 100),
+        Image = IntroIcon,
+        ScaleType = Enum.ScaleType.Fit
+    })
+
+    -- Intro Animation
+    task.spawn(function()
+        -- Expand Main Frame
+        DoTween(Main, {BackgroundTransparency = 0.1}, 0.5)
+        DoTween(Main, {Size = UDim2.new(0, 700, 0, 500)}, 0.5)
+        
+        task.wait(0.5)
+        
+        -- Fade In Intro
+        DoTween(IntroLabel, {TextTransparency = 0}, 0.5)
+        DoTween(IntroImage, {ImageTransparency = 0}, 0.5)
+        
+        task.wait(3)
+        
+        -- Fade Out Intro
+        DoTween(IntroLabel, {TextTransparency = 1}, 0.5)
+        DoTween(IntroImage, {ImageTransparency = 1}, 0.5)
+        
+        task.wait(0.5)
+        IntroLabel:Destroy()
+        IntroImage:Destroy()
+        
+        -- Reveal UI Elements (if we hid them)
+        -- For now, we assume they are created below and will be visible
+        -- But to match Visual, we might want to hide them initially?
+        -- The Visual library creates them AFTER. 
+        -- Since we create them below, they will be visible during intro if we don't hide them.
+        -- We will handle visibility in the section below.
+        if Main:FindFirstChild("Header") then Main.Header.Visible = true end
+        if Main:FindFirstChild("Sidebar") then Main.Sidebar.Visible = true end
+        if Main:FindFirstChild("Content") then Main.Content.Visible = true end
+    end)
     
     -- Acrylic Effect
     BlurModule.New(Main)
@@ -259,7 +283,8 @@ function ASYR:CreateWindow(options)
         Parent = Main,
         Size = UDim2.new(1, 0, 0, 50),
         BackgroundColor3 = Library.Theme.Header,
-        BackgroundTransparency = 0.5
+        BackgroundTransparency = 0.5,
+        Visible = false -- Hidden for Intro
     })
     ApplyRoundedCorner(Header, UDim.new(0, 10))
     
@@ -282,7 +307,8 @@ function ASYR:CreateWindow(options)
         Size = UDim2.new(0, 180, 1, -50),
         Position = UDim2.new(0, 0, 0, 50),
         BackgroundColor3 = Library.Theme.Sidebar,
-        BackgroundTransparency = 0.8
+        BackgroundTransparency = 0.8,
+        Visible = false -- Hidden for Intro
     })
     
     local TabContainer = Create("ScrollingFrame", {
@@ -306,7 +332,8 @@ function ASYR:CreateWindow(options)
         Parent = Main,
         Size = UDim2.new(1, -180, 1, -50),
         Position = UDim2.new(0, 180, 0, 50),
-        BackgroundTransparency = 1
+        BackgroundTransparency = 1,
+        Visible = false -- Hidden for Intro
     })
     
     -- Dragging Logic
@@ -1014,6 +1041,8 @@ function ASYR:CreateWindow(options)
             function Section:CreateParagraph(options)
                 Section:CreateLabel(options.Title .. "\n" .. options.Content)
             end
+            
+            return Section
         end
         
         return Tab
