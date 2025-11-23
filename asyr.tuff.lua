@@ -993,6 +993,16 @@ function Window:CreateTab(name, icon)
             
             local line = Create("Frame", {
                 Parent = div,
+        -- [ Component: Divider ]
+        function Section:CreateDivider(text)
+            local div = Create("Frame", {
+                Parent = Container,
+                Size = UDim2.new(1, 0, 0, 20),
+                BackgroundTransparency = 1
+            })
+            
+            local line = Create("Frame", {
+                Parent = div,
                 Size = UDim2.new(1, 0, 0, 1),
                 Position = UDim2.new(0, 0, 0.5, 0),
                 BackgroundColor3 = Library.Theme.Divider,
@@ -1008,24 +1018,10 @@ function Window:CreateTab(name, icon)
                     TextColor3 = Library.Theme.TextDark,
                     Size = UDim2.new(0, 0, 0, 0),
                     Position = UDim2.new(0.5, 0, 0.5, 0),
-                    BackgroundTransparency = 1,
-                    AutomaticSize = Enum.AutomaticSize.X
-                })
-                -- Mask line behind text
-                local mask = Create("Frame", {
-                    Parent = div,
-                    Size = UDim2.new(0, 0, 0, 4),
-                    Position = UDim2.new(0.5, 0, 0.5, -2),
+                    BackgroundTransparency = 0,
                     BackgroundColor3 = Library.Theme.Secondary, -- Match container bg
-                    BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.X
                 })
-                lbl.Parent = mask -- Trick to hide line? No, better to just put label on top with bg
-                mask:Destroy()
-                
-                lbl.BackgroundColor3 = Library.Theme.Secondary
-                lbl.BackgroundTransparency = 0
-                lbl.Parent = div
             end
         end
 
@@ -1106,8 +1102,18 @@ function Library:Notify(opts)
 end
 
 -- [ Library Control & Intro ] -------------------------------------------------------------------
-function Library:Toggle()
-    self.Open = not self.Open
+Library.IntroComplete = false
+Library.ActiveWindow = nil
+
+function Library:Toggle(forceState)
+    if not self.ActiveWindow or not self.ActiveWindow.Main then return end
+    
+    if forceState ~= nil then
+        self.Open = forceState
+    else
+        self.Open = not self.Open
+    end
+    
     if self.Open then
         Library:FullScreenBlur(true)
         self.ActiveWindow.Main.Visible = true
@@ -1138,8 +1144,9 @@ function Library:FullScreenBlur(enable)
     end
 end
 
-function Library:ShowIntro()
+function Library:InitIntro()
     local IntroGui = Create("ScreenGui", {Parent = CoreGui, Name = "ASYR_Intro"})
+    local ToggleBtn -- For mobile persistence
     
     if IsMobile() then
         -- Mobile Orb
@@ -1172,14 +1179,22 @@ function Library:ShowIntro()
         end)
         
         Orb.MouseButton1Click:Connect(function()
-            IntroGui:Destroy()
-            Library:FullScreenBlur(true)
-            Library:CreateWindow({Name = "ASYR", IntroText = "Welcome"})
-            -- Expand Animation handled in CreateWindow/Toggle
-            Library.ActiveWindow.Main.Size = UDim2.new(0,0,0,0)
-            Library.ActiveWindow.Main.Visible = true
-            Animator.Tween(Library.ActiveWindow.Main, {Size = UDim2.new(0, 600, 0, 500)}, 0.6, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+            if not Library.IntroComplete then
+                Library.IntroComplete = true
+                -- Morph to toggle button
+                Animator.Tween(Orb, {
+                    Size = UDim2.new(0, 40, 0, 40),
+                    Position = UDim2.new(0.5, -20, 0, 10),
+                    BackgroundTransparency = 0.5
+                }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+                
+                Library:Toggle(true)
+            else
+                Library:Toggle()
+            end
         end)
+        
+        ToggleBtn = Orb -- Keep reference
         
     else
         -- PC Prompt
@@ -1204,30 +1219,34 @@ function Library:ShowIntro()
         
         Animator.Tween(Label, {TextTransparency = 0}, 1)
         
-        local conn
-        conn = UserInputService.InputBegan:Connect(function(input)
+        -- Global Input Handler
+        UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if input.KeyCode == Enum.KeyCode.Insert then
-                conn:Disconnect()
-                Animator.Tween(Label, {TextTransparency = 1}, 0.5).Completed:Wait()
-                IntroGui:Destroy()
-                
-                Library:FullScreenBlur(true)
-                Library:CreateWindow({Name = "ASYR", IntroText = "Welcome"})
-                
-                -- Intro Expansion
-                Library.ActiveWindow.Main.Size = UDim2.new(0,0,0,0)
-                Library.ActiveWindow.Main.Visible = true
-                Animator.Tween(Library.ActiveWindow.Main, {Size = UDim2.new(0, 600, 0, 500)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+                if not Library.IntroComplete then
+                    Library.IntroComplete = true
+                    Animator.Tween(Label, {TextTransparency = 1}, 0.5).Completed:Wait()
+                    IntroGui:Destroy()
+                    Library:Toggle(true)
+                else
+                    Library:Toggle()
+                end
             end
         end)
     end
 end
 
 function Library:CreateWindow(options)
-    return Window.new(options)
+    local win = Window.new(options)
+    Library.ActiveWindow = win
+    
+    -- Hide initially, wait for intro
+    win.Main.Visible = false
+    win.Main.Size = UDim2.new(0, 0, 0, 0)
+    
+    -- Start Intro Sequence
+    Library:InitIntro()
+    
+    return win
 end
-
--- Auto-Start
-Library:ShowIntro()
 
 return Library
