@@ -193,6 +193,25 @@ function ASYR:CreateWindow(options)
     local IntroText = options.IntroText or options.LoadingTitle or "ASYR Interface"
     local IntroIcon = options.IntroIcon or "rbxassetid://12345678" -- Default icon if not provided
 
+    local ScreenGui = Create("ScreenGui", {
+        Name = "ASYR",
+        Parent = CoreGui
+    })
+    
+    -- Protect against multiple instances if needed, but for now just create new
+    
+    local Main = Create("Frame", {
+        Name = "Main",
+        Parent = ScreenGui,
+        Size = UDim2.new(0, 485, 0, 565), -- CompKiller Size
+        Position = UDim2.new(0.5, -242, 0.5, -282),
+        BackgroundColor3 = Library.Theme.Background,
+        BackgroundTransparency = 0.1,
+        ClipsDescendants = true
+    })
+    ApplyRoundedCorner(Main, UDim.new(0, 10))
+    ApplyStroke(Main, Library.Theme.Stroke, 1)
+
     local IntroLabel = Create("TextLabel", {
         Name = "IntroText",
         Parent = Main,
