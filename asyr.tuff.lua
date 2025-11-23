@@ -973,7 +973,22 @@ function Window:CreateTab(name, icon)
                 TextSize = 13,
                 TextColor3 = Library.Theme.Text,
                 PlaceholderColor3 = Library.Theme.TextDark,
-                ClearTextOnFocus = false
+                ClearTextOnFocus = false,
+                BackgroundTransparency = 1
+            })
+            Round(box, UDim.new(0, 4))
+            Stroke(box, Library.Theme.Stroke, 1)
+            
+            box.FocusLost:Connect(function(enter)
+                if enter and opts.Callback then opts.Callback(box.Text) end
+            end)
+        end
+        
+        -- [ Component: Divider ]
+        function Section:CreateDivider(text)
+            local div = Create("Frame", {
+                Parent = Container,
+                Size = UDim2.new(1, 0, 0, 20),
                 BackgroundTransparency = 1
             })
             
