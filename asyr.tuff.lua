@@ -648,11 +648,7 @@ function Window:CreateTab(name, icon)
             end)
         end
         
-        return Section
-    end
-    
-    return Tab
-end
+
 
         -- [ Component: Dropdown ]
         function Section:CreateDropdown(opts)
