@@ -115,13 +115,16 @@ local Library = {
     Windows = {},
     Flags = {},
     Theme = {
-        Background = Color3.fromRGB(15, 15, 20),
-        Header = Color3.fromRGB(20, 20, 25),
-        Sidebar = Color3.fromRGB(20, 20, 25),
-        Element = Color3.fromRGB(25, 25, 30),
-        Text = Color3.fromRGB(240, 240, 240),
-        Accent = Color3.fromRGB(0, 170, 255),
-        Stroke = Color3.fromRGB(40, 40, 45)
+        Background = Color3.fromRGB(22, 24, 29), -- BGDBColor
+        Header = Color3.fromRGB(28, 29, 34), -- BlockColor
+        Sidebar = Color3.fromRGB(28, 29, 34), -- BlockColor
+        Element = Color3.fromRGB(39, 40, 47), -- BlockBackground
+        Text = Color3.fromRGB(255, 255, 255), -- SwitchColor
+        Accent = Color3.fromRGB(17, 238, 253), -- Highlight
+        Stroke = Color3.fromRGB(55, 56, 63), -- HighStrokeColor
+        Toggle = Color3.fromRGB(14, 203, 213), -- Toggle
+        Risky = Color3.fromRGB(251, 255, 39), -- Risky
+        SecondaryText = Color3.fromRGB(150, 150, 150) -- Custom for subtitles
     }
 }
 
@@ -186,25 +189,6 @@ end
 function ASYR:CreateWindow(options)
     options = options or {}
     local Name = options.Name or "ASYR"
-    local LoadingTitle = options.LoadingTitle or "ASYR Interface"
-    local LoadingSubtitle = options.LoadingSubtitle or "by Antigravity"
-    local ConfigurationSaving = options.ConfigurationSaving or {Enabled = true, FolderName = "ASYR", FileName = "Config"}
-    
-    local ScreenGui = Create("ScreenGui", {Name = "ASYR_Interface", Parent = CoreGui})
-    
-    -- Main Frame (Created early for Intro)
-    local Main = Create("Frame", {
-        Name = "Main",
-        Parent = ScreenGui,
-        Size = UDim2.new(0, 700, 0, 0), -- Start with 0 height
-        Position = UDim2.new(0.5, -350, 0.5, -250),
-        BackgroundColor3 = Library.Theme.Background,
-        BackgroundTransparency = 1, -- Start transparent
-        ClipsDescendants = true
-    })
-    ApplyRoundedCorner(Main, UDim.new(0, 10))
-    ApplyStroke(Main, Library.Theme.Stroke, 1)
-
     -- Intro Elements
     local IntroText = options.IntroText or options.LoadingTitle or "ASYR Interface"
     local IntroIcon = options.IntroIcon or "rbxassetid://12345678" -- Default icon if not provided
@@ -245,7 +229,7 @@ function ASYR:CreateWindow(options)
     task.spawn(function()
         -- Expand Main Frame
         DoTween(Main, {BackgroundTransparency = 0.1}, 0.5)
-        DoTween(Main, {Size = UDim2.new(0, 700, 0, 500)}, 0.5)
+        DoTween(Main, {Size = UDim2.new(0, 485, 0, 565)}, 0.5) -- CompKiller Size
         
         task.wait(0.5)
         
@@ -384,7 +368,7 @@ function ASYR:CreateWindow(options)
             Text = name,
             Font = Enum.Font.GothamMedium,
             TextSize = 14,
-            TextColor3 = Color3.fromRGB(150, 150, 150),
+            TextColor3 = Library.Theme.SecondaryText,
             Size = UDim2.new(1, -30, 1, 0),
             Position = UDim2.new(0, 15, 0, 0),
             BackgroundTransparency = 1,
@@ -414,14 +398,14 @@ function ASYR:CreateWindow(options)
             -- Deactivate old
             if Window.ActiveTab then
                 DoTween(Window.ActiveTab.Button, {BackgroundTransparency = 1}, 0.2)
-                DoTween(Window.ActiveTab.Label, {TextColor3 = Color3.fromRGB(150, 150, 150)}, 0.2)
+                DoTween(Window.ActiveTab.Label, {TextColor3 = Library.Theme.SecondaryText}, 0.2)
                 Window.ActiveTab.Frame.Visible = false
             end
             
             -- Activate new
             Window.ActiveTab = {Button = TabButton, Label = TabLabel, Frame = TabFrame}
-            DoTween(TabButton, {BackgroundTransparency = 0.9}, 0.2)
-            DoTween(TabLabel, {TextColor3 = Library.Theme.Text}, 0.2)
+            DoTween(TabButton, {BackgroundTransparency = 0.9, BackgroundColor3 = Library.Theme.Accent}, 0.2)
+            DoTween(TabLabel, {TextColor3 = Library.Theme.Accent}, 0.2)
             TabFrame.Visible = true
         end)
         
@@ -540,7 +524,7 @@ function ASYR:CreateWindow(options)
                     Parent = ToggleFrame,
                     Size = UDim2.new(0, 40, 0, 20),
                     Position = UDim2.new(1, -50, 0.5, -10),
-                    BackgroundColor3 = State and Library.Theme.Accent or Color3.fromRGB(50, 50, 50)
+                    BackgroundColor3 = State and Library.Theme.Toggle or Library.Theme.Stroke
                 })
                 ApplyRoundedCorner(Switch, UDim.new(0, 10))
                 
@@ -548,12 +532,12 @@ function ASYR:CreateWindow(options)
                     Parent = Switch,
                     Size = UDim2.new(0, 16, 0, 16),
                     Position = UDim2.new(0, State and 22 or 2, 0.5, -8),
-                    BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    BackgroundColor3 = Library.Theme.Text
                 })
                 ApplyRoundedCorner(Knob, UDim.new(1, 0))
                 
                 local function Update()
-                    DoTween(Switch, {BackgroundColor3 = State and Library.Theme.Accent or Color3.fromRGB(50, 50, 50)}, 0.2)
+                    DoTween(Switch, {BackgroundColor3 = State and Library.Theme.Toggle or Library.Theme.Stroke}, 0.2)
                     DoTween(Knob, {Position = UDim2.new(0, State and 22 or 2, 0.5, -8)}, 0.2)
                     Callback(State)
                 end
@@ -598,7 +582,7 @@ function ASYR:CreateWindow(options)
                     Text = tostring(Value),
                     Font = Enum.Font.Gotham,
                     TextSize = 12,
-                    TextColor3 = Color3.fromRGB(180, 180, 180),
+                    TextColor3 = Library.Theme.SecondaryText,
                     Size = UDim2.new(0, 50, 0, 20),
                     Position = UDim2.new(1, -60, 0, 5),
                     BackgroundTransparency = 1,
@@ -609,7 +593,7 @@ function ASYR:CreateWindow(options)
                     Parent = SliderFrame,
                     Size = UDim2.new(1, -20, 0, 6),
                     Position = UDim2.new(0, 10, 0, 35),
-                    BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    BackgroundColor3 = Library.Theme.Stroke
                 })
                 ApplyRoundedCorner(Track, UDim.new(1, 0))
                 
@@ -698,7 +682,7 @@ function ASYR:CreateWindow(options)
                     Text = GetText(),
                     Font = Enum.Font.Gotham,
                     TextSize = 12,
-                    TextColor3 = Color3.fromRGB(180, 180, 180),
+                    TextColor3 = Library.Theme.SecondaryText,
                     Size = UDim2.new(0, 100, 0, 36),
                     Position = UDim2.new(1, -130, 0, 0),
                     BackgroundTransparency = 1,
@@ -711,7 +695,7 @@ function ASYR:CreateWindow(options)
                     Size = UDim2.new(0, 20, 0, 20),
                     Position = UDim2.new(1, -25, 0, 8),
                     BackgroundTransparency = 1,
-                    ImageColor3 = Color3.fromRGB(150, 150, 150)
+                    ImageColor3 = Library.Theme.SecondaryText
                 })
                 
                 local OptionContainer = Create("Frame", {
@@ -739,7 +723,7 @@ function ASYR:CreateWindow(options)
                     if Multi then
                         if CurrentOption[option] then
                             CurrentOption[option] = nil
-                            DoTween(button, {BackgroundColor3 = Color3.fromRGB(35, 35, 40)}, 0.2)
+                            DoTween(button, {BackgroundColor3 = Library.Theme.Header}, 0.2)
                         else
                             CurrentOption[option] = true
                             DoTween(button, {BackgroundColor3 = Library.Theme.Accent}, 0.2)
@@ -758,7 +742,7 @@ function ASYR:CreateWindow(options)
                     local OptBtn = Create("TextButton", {
                         Parent = OptionContainer,
                         Size = UDim2.new(1, 0, 0, 30),
-                        BackgroundColor3 = Color3.fromRGB(35, 35, 40),
+                        BackgroundColor3 = Library.Theme.Header,
                         Text = tostring(opt),
                         Font = Enum.Font.Gotham,
                         TextColor3 = Library.Theme.Text,
@@ -815,10 +799,10 @@ function ASYR:CreateWindow(options)
                     Font = Enum.Font.Gotham,
                     TextSize = 13,
                     TextColor3 = Library.Theme.Text,
-                    PlaceholderColor3 = Color3.fromRGB(150, 150, 150),
+                    PlaceholderColor3 = Library.Theme.SecondaryText,
                     Size = UDim2.new(1, -120, 1, -10),
                     Position = UDim2.new(0, 110, 0, 5),
-                    BackgroundColor3 = Color3.fromRGB(35, 35, 40),
+                    BackgroundColor3 = Library.Theme.Header,
                     TextXAlignment = Enum.TextXAlignment.Left
                 })
                 ApplyRoundedCorner(TextBox, UDim.new(0, 4))
@@ -861,11 +845,11 @@ function ASYR:CreateWindow(options)
                     Parent = KeybindFrame,
                     Size = UDim2.new(0, 80, 0, 24),
                     Position = UDim2.new(1, -90, 0, 6),
-                    BackgroundColor3 = Color3.fromRGB(35, 35, 40),
+                    BackgroundColor3 = Library.Theme.Header,
                     Text = CurrentKey.Name,
                     Font = Enum.Font.Gotham,
                     TextSize = 12,
-                    TextColor3 = Color3.fromRGB(180, 180, 180),
+                    TextColor3 = Library.Theme.SecondaryText,
                     AutoButtonColor = false
                 })
                 ApplyRoundedCorner(BindButton, UDim.new(0, 4))
@@ -968,7 +952,7 @@ function ASYR:CreateWindow(options)
                         Parent = Slider,
                         Size = UDim2.new(1, -30, 0, 4),
                         Position = UDim2.new(0, 30, 0.5, -2),
-                        BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                        BackgroundColor3 = Library.Theme.Stroke
                     })
                     
                     local Fill = Create("Frame", {
