@@ -1,7 +1,6 @@
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -40,21 +39,15 @@ end
 function ASYR:CreateNotification(title, text, duration)
     duration = duration or 3
     
-    local notifFolder = self.ScreenGui:FindFirstChild("notification") or Instance.new("Folder")
-    if not self.ScreenGui:FindFirstChild("notification") then
-        notifFolder.Name = "notification"
-        notifFolder.Parent = self.ScreenGui
-    end
-    
     local notifFrame = Instance.new("Frame")
     notifFrame.Name = "Notification_frame"
     notifFrame.BackgroundTransparency = 0.1
     notifFrame.Position = UDim2.new(0.7, 0, 0.5, -45)
-    notifFrame.BorderColor3 = Themes.Black
     notifFrame.Size = UDim2.new(0, 0, 0, 90)
     notifFrame.BorderSizePixel = 0
     notifFrame.BackgroundColor3 = Themes.DarkGray
-    notifFrame.Parent = notifFolder
+    notifFrame.Parent = self.ScreenGui
+    notifFrame.ZIndex = 999
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 8)
@@ -142,37 +135,33 @@ function ASYR:New(config)
     divider.BackgroundColor3 = Themes.LightGray
     divider.Parent = mainFrame
     
-    -- Tab Buttons Container
-    local tabButtonsFrame = Instance.new("Frame")
-    tabButtonsFrame.Name = "TabButtons"
-    tabButtonsFrame.Position = UDim2.new(0.08, 0, 0.08, 0)
-    tabButtonsFrame.Size = UDim2.new(0.84, 0, 0, 50)
-    tabButtonsFrame.BackgroundColor3 = Themes.Dark
-    tabButtonsFrame.BorderSizePixel = 0
-    tabButtonsFrame.Parent = mainFrame
-    
-    local tabButtonCorner = Instance.new("UICorner")
-    tabButtonCorner.CornerRadius = UDim.new(0, 8)
-    tabButtonCorner.Parent = tabButtonsFrame
+    -- Left Tab Panel (Vertical)
+    local tabPanel = Instance.new("Frame")
+    tabPanel.Name = "TabPanel"
+    tabPanel.Position = UDim2.new(0.08, 0, 0.08, 0)
+    tabPanel.Size = UDim2.new(0.25, 0, 0.85, 0)
+    tabPanel.BackgroundColor3 = Themes.Black
+    tabPanel.BorderSizePixel = 0
+    tabPanel.Parent = mainFrame
     
     local tabLayout = Instance.new("UIListLayout")
-    tabLayout.FillDirection = Enum.FillDirection.Horizontal
-    tabLayout.Padding = UDim.new(0, 8)
+    tabLayout.FillDirection = Enum.FillDirection.Vertical
+    tabLayout.Padding = UDim.new(0, 10)
     tabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    tabLayout.Parent = tabButtonsFrame
+    tabLayout.Parent = tabPanel
     
     local tabPadding = Instance.new("UIPadding")
     tabPadding.PaddingTop = UDim.new(0, 5)
     tabPadding.PaddingBottom = UDim.new(0, 5)
-    tabPadding.PaddingLeft = UDim.new(0, 10)
-    tabPadding.PaddingRight = UDim.new(0, 10)
-    tabPadding.Parent = tabButtonsFrame
+    tabPadding.PaddingLeft = UDim.new(0, 5)
+    tabPadding.PaddingRight = UDim.new(0, 5)
+    tabPadding.Parent = tabPanel
     
-    -- Content Container
+    -- Content Container (Right side)
     local contentContainer = Instance.new("ScrollingFrame")
     contentContainer.Name = "ContentContainer"
-    contentContainer.Position = UDim2.new(0.08, 0, 0.2, 0)
-    contentContainer.Size = UDim2.new(0.84, 0, 0.75, 0)
+    contentContainer.Position = UDim2.new(0.35, 0, 0.08, 0)
+    contentContainer.Size = UDim2.new(0.57, 0, 0.85, 0)
     contentContainer.BackgroundColor3 = Themes.Black
     contentContainer.BorderSizePixel = 0
     contentContainer.ScrollBarThickness = 0
@@ -193,7 +182,7 @@ function ASYR:New(config)
     contentPadding.Parent = contentContainer
     
     window.MainFrame = mainFrame
-    window.TabButtonsFrame = tabButtonsFrame
+    window.TabPanel = tabPanel
     window.ContentContainer = contentContainer
     
     return window
@@ -208,22 +197,41 @@ function ASYR:CreateTab(name)
     tab.Name = name
     tab.Active = false
     
-    -- Tab Button
-    local tabBtn = Instance.new("TextButton")
+    -- Tab Button with side bar
+    local tabBtn = Instance.new("Frame")
     tabBtn.Name = name .. "_Tab"
-    tabBtn.Text = name
     tabBtn.BackgroundColor3 = Themes.Dark
-    tabBtn.TextColor3 = Themes.Secondary
-    tabBtn.Size = UDim2.new(0, 90, 0, 40)
+    tabBtn.Size = UDim2.new(1, 0, 0, 45)
     tabBtn.BorderSizePixel = 0
-    tabBtn.Font = Enum.Font.Michroma
-    tabBtn.TextSize = 14
-    tabBtn.AutoButtonColor = false
-    tabBtn.Parent = self.TabButtonsFrame
+    tabBtn.Parent = self.TabPanel
     
     local btnCorner = Instance.new("UICorner")
     btnCorner.CornerRadius = UDim.new(0, 6)
     btnCorner.Parent = tabBtn
+    
+    -- Purple side bar
+    local sideBar = Instance.new("Frame")
+    sideBar.Name = "SideBar"
+    sideBar.BackgroundColor3 = Themes.Dark
+    sideBar.Size = UDim2.new(0, 4, 1, 0)
+    sideBar.BorderSizePixel = 0
+    sideBar.Parent = tabBtn
+    
+    local sideBarCorner = Instance.new("UICorner")
+    sideBarCorner.CornerRadius = UDim.new(0, 2)
+    sideBarCorner.Parent = sideBar
+    
+    -- Tab label
+    local tabLabel = Instance.new("TextLabel")
+    tabLabel.Text = name
+    tabLabel.BackgroundTransparency = 1
+    tabLabel.TextColor3 = Themes.Secondary
+    tabLabel.Size = UDim2.new(1, -10, 1, 0)
+    tabLabel.Position = UDim2.new(0, 10, 0, 0)
+    tabLabel.Font = Enum.Font.Michroma
+    tabLabel.TextSize = 14
+    tabLabel.TextXAlignment = Enum.TextXAlignment.Left
+    tabLabel.Parent = tabBtn
     
     -- Content Panel
     local contentPanel = Instance.new("Frame")
@@ -242,31 +250,41 @@ function ASYR:CreateTab(name)
     
     tab.Button = tabBtn
     tab.Panel = contentPanel
+    tab.SideBar = sideBar
     
     -- Tab Button Click Handler
     local function SelectTab()
-        -- Hide all tabs
+        -- Hide all tabs and reset colors
         for _, t in pairs(self.Tabs) do
             t.Panel.Visible = false
             CreateTween(t.Button, {BackgroundColor3 = Themes.Dark}, 0.2)
+            CreateTween(t.SideBar, {BackgroundColor3 = Themes.Dark}, 0.2)
         end
         
-        -- Show current tab
+        -- Show current tab and highlight
         contentPanel.Visible = true
-        CreateTween(tabBtn, {BackgroundColor3 = Themes.Primary}, 0.2)
+        CreateTween(tabBtn, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2)
+        CreateTween(sideBar, {BackgroundColor3 = Themes.Primary}, 0.2)
         self.CurrentTab = tab
     end
     
-    tabBtn.MouseButton1Click:Connect(SelectTab)
+    local clickDetector = Instance.new("TextButton")
+    clickDetector.Text = ""
+    clickDetector.BackgroundTransparency = 1
+    clickDetector.Size = UDim2.new(1, 0, 1, 0)
+    clickDetector.Parent = tabBtn
+    clickDetector.AutoButtonColor = false
+    
+    clickDetector.MouseButton1Click:Connect(SelectTab)
     
     -- Hover effects
-    tabBtn.MouseEnter:Connect(function()
+    clickDetector.MouseEnter:Connect(function()
         if self.CurrentTab ~= tab then
-            CreateTween(tabBtn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.2)
+            CreateTween(tabBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}, 0.2)
         end
     end)
     
-    tabBtn.MouseLeave:Connect(function()
+    clickDetector.MouseLeave:Connect(function()
         if self.CurrentTab ~= tab then
             CreateTween(tabBtn, {BackgroundColor3 = Themes.Dark}, 0.2)
         end
@@ -287,17 +305,13 @@ end
 -- ============================================
 
 function ASYR:CreateWatermark()
-    local watermarkFolder = Instance.new("Folder")
-    watermarkFolder.Name = "watermark"
-    watermarkFolder.Parent = self.ScreenGui
-    
     local watermarkFrame = Instance.new("Frame")
     watermarkFrame.Name = "watermark_frame"
     watermarkFrame.Position = UDim2.new(0.02, 0, 0.02, 0)
     watermarkFrame.Size = UDim2.new(0, 380, 0, 70)
     watermarkFrame.BorderSizePixel = 0
     watermarkFrame.BackgroundColor3 = Themes.DarkGray
-    watermarkFrame.Parent = watermarkFolder
+    watermarkFrame.Parent = self.ScreenGui
     
     local wmCorner = Instance.new("UICorner")
     wmCorner.CornerRadius = UDim.new(0, 10)
