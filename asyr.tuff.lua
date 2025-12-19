@@ -37,14 +37,13 @@ local Config = {
         Slow = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
         Bounce = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
     },
-    -- Supported games list (GameID = GameName)
-    SupportedGames = {
-        [2753915549] = "Blox Fruits",
-        [6284583030] = "Da Hood",
-        [142823291] = "Murder Mystery 2",
-        [286090429] = "Arsenal",
-        [4924922222] = "Brookhaven",
-    }
+SupportedGames = {
+    [2753915549] = "Blox Fruits",       -- ✅ Correct
+    [2850353602] = "Da Hood",            -- ✅ Fixed (was 6284583030)
+    [907085734] = "Murder Mystery 2",    -- ✅ Fixed (was 142823291)
+    [286090429] = "Arsenal",             -- ✅ Correct
+    [4924922222] = "Brookhaven RP",      -- ✅ Correct
+}
 }
 
 -- Utility Functions
