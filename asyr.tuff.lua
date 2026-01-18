@@ -19,7 +19,7 @@ local Centrix = {}
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local CoreGui = game:GetService("CoreGui")
+local PlayerGui = game:GetService("PlayerGui")
 local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 local HttpService = game:GetService("HttpService")
@@ -107,7 +107,7 @@ function Centrix:Init(title)
     ScreenGui.Name = "Centrix_V3"
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.ResetOnSpawn = false
-    ScreenGui.Parent = (gethui and gethui()) or CoreGui
+    ScreenGui.Parent = (gethui and gethui()) or PlayerGui
     library.Root = ScreenGui
 
     -- Mobile Toggle Button
