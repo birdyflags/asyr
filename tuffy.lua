@@ -661,6 +661,7 @@ function SubPage:_CreateUI()
 		Name = "Section_" .. self.Name,
 		Size = UDim2.new(1, 0, 0, 50),
 		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
 		ClipsDescendants = true,
 		LayoutOrder = self.LayoutOrder,
 		Visible = false,
@@ -1337,7 +1338,7 @@ function SubPage:AddDropdown(config)
 		})
 		
 		option.Check = Utilities.Create("ImageLabel", {
-			Image = "rbxassetid://137946959393180", -- Premium Check icon
+			Image = "rbxassetid://7733715400", -- Standard Check icon
 			ImageColor3 = theme.Primary,
 			Size = UDim2.fromOffset(14, 14),
 			AnchorPoint = Vector2.new(1, 0.5),
