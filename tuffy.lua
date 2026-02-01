@@ -1140,33 +1140,44 @@ function SubPage:AddDropdown(config)
 		Parent = dropdown.Header
 	})
 	
-	-- List Area (ClipsDescendants handled by parent window ideally, but here we use a fixed size when open)
+	-- List Area (Moved to global level to avoid clipping)
+	if not self.Window._DropdownLayer then
+		self.Window._DropdownLayer = Utilities.Create("Frame", {
+			Name = "DropdownOverlay",
+			Size = UDim2.new(1, 0, 1, 0),
+			BackgroundTransparency = 1,
+			ZIndex = 100,
+			Parent = self.Window.MainFrame -- Or ScreenGui for absolute overflow
+		})
+	end
+
 	dropdown.List = Utilities.Create("ScrollingFrame", {
-		Name = "List",
-		Position = UDim2.new(0, 0, 0, 36),
-		Size = UDim2.new(1, 0, 0, 0),
+		Name = "List_" .. dropdown.Name,
+		Size = UDim2.new(0, 0, 0, 0),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 2,
 		ScrollBarImageColor3 = theme.Primary,
 		ClipsDescendants = true,
 		Visible = false,
-		Parent = dropdown.Frame
+		ZIndex = 100,
+		Parent = self.Window._DropdownLayer
 	})
 	Utilities.AddCorner(dropdown.List, 6)
+	dropdown.ListStroke = Utilities.AddStroke(dropdown.List, theme.Border, 1)
 	local listLayout = Utilities.AddListLayout(dropdown.List, 4)
 	Utilities.AddPadding(dropdown.List, 6, 6, 6, 6)
 	
 	-- Search Bar
 	dropdown.Search = Utilities.Create("TextBox", {
 		Name = "Search",
-		PlaceholderText = "Search options...",
+		PlaceholderText = "Search...",
 		PlaceholderColor3 = theme.TextMuted,
 		Text = "",
 		FontFace = theme.Font,
 		TextSize = 12,
 		TextColor3 = theme.TextPrimary,
-		Size = UDim2.new(1, 0, 0, 28),
+		Size = UDim2.new(1, 0, 0, 26),
 		BackgroundColor3 = theme.BackgroundLight,
 		BorderSizePixel = 0,
 		Parent = dropdown.List
@@ -1191,7 +1202,7 @@ function SubPage:AddDropdown(config)
 		option.Frame = Utilities.Create("TextButton", {
 			Name = "Option_" .. name,
 			Text = "",
-			Size = UDim2.new(1, 0, 0, 28),
+			Size = UDim2.new(1, 0, 0, 26),
 			BackgroundColor3 = theme.BackgroundLight,
 			BackgroundTransparency = 1,
 			Parent = dropdown.List
@@ -1213,7 +1224,7 @@ function SubPage:AddDropdown(config)
 		option.Check = Utilities.Create("ImageLabel", {
 			Image = "rbxassetid://7733715400",
 			ImageColor3 = theme.Primary,
-			Size = UDim2.fromOffset(14, 14),
+			Size = UDim2.fromOffset(12, 12),
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.new(1, -8, 0.5, 0),
 			BackgroundTransparency = 1,
@@ -1258,18 +1269,40 @@ function SubPage:AddDropdown(config)
 	-- Toggle Function
 	function dropdown:Toggle(state)
 		self.Open = (state ~= nil) and state or not self.Open
-		local targetSize = self.Open and UDim2.new(1, 0, 0, 180) or UDim2.new(1, 0, 0, 36)
-		local listSize = self.Open and UDim2.new(1, 0, 0, 140) or UDim2.new(1, 0, 0, 0)
 		
-		self.List.Visible = true
-		Utilities.Tween(self.Frame, {Size = targetSize}, 0.3, Enum.EasingStyle.Quart)
-		Utilities.Tween(self.List, {Size = listSize}, 0.3, Enum.EasingStyle.Quart)
-		Utilities.Tween(self.Icon, {Rotation = self.Open and 180 or 0}, 0.3)
-		
-		if not self.Open then
-			task.delay(0.3, function() if not self.Open then self.List.Visible = false end end)
+		if self.Open then
+			-- Close others
+			if self.Window._ActiveDropdown and self.Window._ActiveDropdown ~= self then
+				self.Window._ActiveDropdown:Toggle(false)
+			end
+			self.Window._ActiveDropdown = self
+			
+			-- Position List
+			local absPos = dropdown.Frame.AbsolutePosition
+			local mainPos = self.Window.MainFrame.AbsolutePosition
+			local relativePos = absPos - mainPos
+			
+			dropdown.List.Position = UDim2.new(0, relativePos.X, 0, relativePos.Y + 38)
+			dropdown.List.Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 0)
+			dropdown.List.Visible = true
+			
+			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 150)}, 0.3, Enum.EasingStyle.Quart)
+			Utilities.Tween(dropdown.Icon, {Rotation = 180}, 0.3)
+		else
+			if self.Window._ActiveDropdown == self then self.Window._ActiveDropdown = nil end
+			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 0)}, 0.2, Enum.EasingStyle.Quart).Completed:Connect(function()
+				if not self.Open then dropdown.List.Visible = false end
+			end)
+			Utilities.Tween(dropdown.Icon, {Rotation = 0}, 0.3)
 		end
 	end
+	
+	-- Close if tab changes
+	self.Tab.PageFrame:GetPropertyChangedSignal("Visible"):Connect(function()
+		if not self.Tab.PageFrame.Visible and dropdown.Open then
+			dropdown:Toggle(false)
+		end
+	end)
 	
 	-- Init Options
 	for _, opt in ipairs(dropdown.Options) do dropdown:AddOption(opt) end
