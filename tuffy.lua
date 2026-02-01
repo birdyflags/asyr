@@ -806,6 +806,9 @@ function SubPage:Deselect()
 	
 	local theme = Centrixity.Theme
 	
+	-- Hide section frame
+	self.SectionFrame.Visible = false
+	
 	-- Animate header tab
 	if self.HeaderTabButton then
 		Utilities.Tween(self.HeaderTabButton, {BackgroundTransparency = 1, TextColor3 = theme.TextMuted}, 0.3)
