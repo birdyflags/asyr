@@ -896,53 +896,48 @@ function SubPage:AddToggle(config)
 	
 	-- Toggle Function
 	function toggle:Set(value, skipCallback)
-		if self.Value == value and not skipCallback then return end -- Don't fire if already in this state
+		if self.Value == value then return end -- Strict check to prevent double-firing
 		self.Value = value
 		
-		-- Animate checkbox
-		if value then
-			self.Gradient.Enabled = true
-			Utilities.Tween(self.Checkbox, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0}, 0.2)
-			Utilities.Tween(self.CheckboxStroke, {Color = theme.Primary, Transparency = 0}, 0.2)
-			Utilities.Tween(self.Checkmark, {ImageTransparency = 0}, 0.2)
-			Utilities.Tween(self.Label, {TextColor3 = theme.TextPrimary}, 0.2)
-		else
-			Utilities.Tween(self.Checkbox, {BackgroundColor3 = theme.BackgroundLight, BackgroundTransparency = 0}, 0.2)
-			Utilities.Tween(self.CheckboxStroke, {Color = theme.Border, Transparency = 0}, 0.2)
-			Utilities.Tween(self.Checkmark, {ImageTransparency = 1}, 0.2)
-			Utilities.Tween(self.Label, {TextColor3 = theme.TextMuted}, 0.2)
+		-- Animate UI
+		local targetColor = value and theme.Primary or theme.BackgroundLight
+		local targetStroke = value and theme.Primary or theme.Border
+		local targetIconTrans = value and 0 or 1
+		local targetText = value and theme.TextPrimary or theme.TextMuted
+		
+		if value then self.Gradient.Enabled = true end
+		
+		Utilities.Tween(self.Checkbox, {BackgroundColor3 = targetColor}, 0.2)
+		Utilities.Tween(self.CheckboxStroke, {Color = targetStroke}, 0.2)
+		Utilities.Tween(self.Checkmark, {ImageTransparency = targetIconTrans}, 0.2)
+		Utilities.Tween(self.Label, {TextColor3 = targetText}, 0.2)
+		
+		if not value then
 			task.delay(0.2, function()
-				if not self.Value then
-					self.Gradient.Enabled = false
-				end
+				if not self.Value then self.Gradient.Enabled = false end
 			end)
 		end
 		
-		-- Execute callback
+		-- Callback logic
 		if not skipCallback then
 			task.spawn(function()
-				local success, err = pcall(function()
-					self.Callback(value)
-				end)
-				
+				local success, err = pcall(self.Callback, value)
 				if not success then
-					Centrixity:Notify({
-						Type = "Error",
-						Title = "Toggle Callback Error",
-						Message = tostring(err),
-						Duration = 6
-					})
+					Centrixity:Notify({Type = "Error", Title = "Toggle Error", Message = tostring(err)})
 				end
 			end)
 		end
 	end
 	
-	-- Click event
-	toggle.Button.MouseButton1Click:Connect(function()
+	-- Click event with simple debounce
+	local lastClick = 0
+	toggle.Button.MouseButton1Down:Connect(function()
+		if tick() - lastClick < 0.2 then return end -- Debounce
+		lastClick = tick()
 		toggle:Set(not toggle.Value)
 	end)
 	
-	-- Hover effects (Color/Transparency highlight instead of scaling)
+	-- Hover effects (Color/Transparency highlight)
 	toggle.Button.MouseEnter:Connect(function()
 		Utilities.Tween(toggle.Frame, {BackgroundTransparency = 0.95}, 0.2)
 		Utilities.Tween(toggle.CheckboxStroke, {Thickness = 1.5}, 0.2)
@@ -953,9 +948,7 @@ function SubPage:AddToggle(config)
 		Utilities.Tween(toggle.CheckboxStroke, {Thickness = 1}, 0.2)
 	end)
 	
-	-- Store component
 	table.insert(self.Components, toggle)
-	
 	return toggle
 end
 
@@ -1075,8 +1068,223 @@ function SubPage:AddButton(config)
 end
 
 function SubPage:AddDropdown(config)
-	-- TODO: Implement dropdown
-	return {}
+	config = config or {}
+	local theme = Centrixity.Theme
+	
+	local dropdown = {
+		Name = config.Name or "Dropdown",
+		Options = config.Options or {},
+		Selected = config.Default or (config.Multi and {} or ""),
+		Multi = config.Multi or false,
+		Callback = config.Callback or function() end,
+		Open = false,
+		OptionFrames = {}
+	}
+	
+	-- Main Container
+	dropdown.Frame = Utilities.Create("Frame", {
+		Name = "Dropdown_" .. dropdown.Name,
+		Size = UDim2.new(1, 0, 0, 36),
+		BackgroundColor3 = theme.BackgroundLight,
+		BorderSizePixel = 0,
+		LayoutOrder = #self.Components + 1,
+		Parent = self.ComponentHolder
+	})
+	Utilities.AddCorner(dropdown.Frame, 6)
+	dropdown.Stroke = Utilities.AddStroke(dropdown.Frame, theme.Border, 1)
+	
+	-- Header Area
+	dropdown.Header = Utilities.Create("TextButton", {
+		Name = "Header",
+		Size = UDim2.new(1, 0, 0, 36),
+		BackgroundTransparency = 1,
+		Text = "",
+		Parent = dropdown.Frame
+	})
+	
+	dropdown.Label = Utilities.Create("TextLabel", {
+		Text = dropdown.Name,
+		FontFace = theme.Font,
+		TextColor3 = theme.TextSecondary,
+		TextSize = 13,
+		Position = UDim2.new(0, 12, 0, 0),
+		Size = UDim2.new(0.4, 0, 1, 0),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BackgroundTransparency = 1,
+		Parent = dropdown.Header
+	})
+	
+	dropdown.ValueLabel = Utilities.Create("TextLabel", {
+		Text = "None",
+		FontFace = theme.FontMedium,
+		TextColor3 = theme.Primary,
+		TextSize = 13,
+		Position = UDim2.new(0.4, 0, 0, 0),
+		Size = UDim2.new(0.6, -35, 1, 0),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		BackgroundTransparency = 1,
+		Parent = dropdown.Header
+	})
+	
+	dropdown.Icon = Utilities.Create("ImageLabel", {
+		Image = "rbxassetid://124971904960139", -- Down arrow
+		ImageColor3 = theme.TextMuted,
+		Size = UDim2.fromOffset(16, 16),
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, -12, 0.5, 0),
+		BackgroundTransparency = 1,
+		Rotation = 0,
+		Parent = dropdown.Header
+	})
+	
+	-- List Area (ClipsDescendants handled by parent window ideally, but here we use a fixed size when open)
+	dropdown.List = Utilities.Create("ScrollingFrame", {
+		Name = "List",
+		Position = UDim2.new(0, 0, 0, 36),
+		Size = UDim2.new(1, 0, 0, 0),
+		BackgroundColor3 = theme.Background,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 2,
+		ScrollBarImageColor3 = theme.Primary,
+		ClipsDescendants = true,
+		Visible = false,
+		Parent = dropdown.Frame
+	})
+	Utilities.AddCorner(dropdown.List, 6)
+	local listLayout = Utilities.AddListLayout(dropdown.List, 4)
+	Utilities.AddPadding(dropdown.List, 6, 6, 6, 6)
+	
+	-- Search Bar
+	dropdown.Search = Utilities.Create("TextBox", {
+		Name = "Search",
+		PlaceholderText = "Search options...",
+		PlaceholderColor3 = theme.TextMuted,
+		Text = "",
+		FontFace = theme.Font,
+		TextSize = 12,
+		TextColor3 = theme.TextPrimary,
+		Size = UDim2.new(1, 0, 0, 28),
+		BackgroundColor3 = theme.BackgroundLight,
+		BorderSizePixel = 0,
+		Parent = dropdown.List
+	})
+	Utilities.AddCorner(dropdown.Search, 4)
+	Utilities.AddPadding(dropdown.Search, 0, 8, 0, 8)
+	
+	-- Update Value Label
+	local function updateValue()
+		if dropdown.Multi then
+			local count = 0
+			for _ in pairs(dropdown.Selected) do count = count + 1 end
+			dropdown.ValueLabel.Text = count > 0 and (count .. " Selected") or "None"
+		else
+			dropdown.ValueLabel.Text = tostring(dropdown.Selected) ~= "" and tostring(dropdown.Selected) or "None"
+		end
+	end
+	
+	-- Add Option Function
+	function dropdown:AddOption(name)
+		local option = {}
+		option.Frame = Utilities.Create("TextButton", {
+			Name = "Option_" .. name,
+			Text = "",
+			Size = UDim2.new(1, 0, 0, 28),
+			BackgroundColor3 = theme.BackgroundLight,
+			BackgroundTransparency = 1,
+			Parent = dropdown.List
+		})
+		Utilities.AddCorner(option.Frame, 4)
+		
+		option.Label = Utilities.Create("TextLabel", {
+			Text = name,
+			FontFace = theme.Font,
+			TextColor3 = theme.TextSecondary,
+			TextSize = 12,
+			Position = UDim2.new(0, 8, 0, 0),
+			Size = UDim2.new(1, -16, 1, 0),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			BackgroundTransparency = 1,
+			Parent = option.Frame
+		})
+		
+		option.Check = Utilities.Create("ImageLabel", {
+			Image = "rbxassetid://7733715400",
+			ImageColor3 = theme.Primary,
+			Size = UDim2.fromOffset(14, 14),
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.new(1, -8, 0.5, 0),
+			BackgroundTransparency = 1,
+			ImageTransparency = 1,
+			Parent = option.Frame
+		})
+		
+		local function refreshState()
+			local isSelected = dropdown.Multi and dropdown.Selected[name] or (dropdown.Selected == name)
+			Utilities.Tween(option.Label, {TextColor3 = isSelected and theme.TextPrimary or theme.TextSecondary}, 0.2)
+			Utilities.Tween(option.Check, {ImageTransparency = isSelected and 0 or 1}, 0.2)
+			Utilities.Tween(option.Frame, {BackgroundTransparency = isSelected and 0.9 or 1}, 0.2)
+		end
+		
+		option.Frame.MouseButton1Click:Connect(function()
+			if dropdown.Multi then
+				dropdown.Selected[name] = not dropdown.Selected[name]
+				if not dropdown.Selected[name] then dropdown.Selected[name] = nil end
+			else
+				dropdown.Selected = name
+				dropdown:Toggle(false)
+			end
+			
+			for _, opt in pairs(dropdown.OptionFrames) do opt:Refresh() end
+			updateValue()
+			pcall(dropdown.Callback, dropdown.Selected)
+		end)
+		
+		option.Frame.MouseEnter:Connect(function()
+			Utilities.Tween(option.Frame, {BackgroundTransparency = 0.95}, 0.1)
+		end)
+		option.Frame.MouseLeave:Connect(function()
+			local isSelected = dropdown.Multi and dropdown.Selected[name] or (dropdown.Selected == name)
+			Utilities.Tween(option.Frame, {BackgroundTransparency = isSelected and 0.9 or 1}, 0.1)
+		end)
+		
+		option.Refresh = refreshState
+		dropdown.OptionFrames[name] = option
+		refreshState()
+	end
+	
+	-- Toggle Function
+	function dropdown:Toggle(state)
+		self.Open = (state ~= nil) and state or not self.Open
+		local targetSize = self.Open and UDim2.new(1, 0, 0, 180) or UDim2.new(1, 0, 0, 36)
+		local listSize = self.Open and UDim2.new(1, 0, 0, 140) or UDim2.new(1, 0, 0, 0)
+		
+		self.List.Visible = true
+		Utilities.Tween(self.Frame, {Size = targetSize}, 0.3, Enum.EasingStyle.Quart)
+		Utilities.Tween(self.List, {Size = listSize}, 0.3, Enum.EasingStyle.Quart)
+		Utilities.Tween(self.Icon, {Rotation = self.Open and 180 or 0}, 0.3)
+		
+		if not self.Open then
+			task.delay(0.3, function() if not self.Open then self.List.Visible = false end end)
+		end
+	end
+	
+	-- Init Options
+	for _, opt in ipairs(dropdown.Options) do dropdown:AddOption(opt) end
+	updateValue()
+	
+	-- Header Click
+	dropdown.Header.MouseButton1Click:Connect(function() dropdown:Toggle() end)
+	
+	-- Search Logic
+	dropdown.Search:GetPropertyChangedSignal("Text"):Connect(function()
+		local query = dropdown.Search.Text:lower()
+		for name, opt in pairs(dropdown.OptionFrames) do
+			opt.Frame.Visible = name:lower():find(query) ~= nil
+		end
+	end)
+	
+	table.insert(self.Components, dropdown)
+	return dropdown
 end
 
 function SubPage:AddKeybind(config)
