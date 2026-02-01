@@ -972,44 +972,40 @@ end
 -- NOTIFICATION SYSTEM
 -- ============================================
 -- ============================================
--- NOTIFICATION SYSTEM (PREMIUM VERSION)
+-- NOTIFICATION SYSTEM (EXPANDABLE TOAST)
 -- ============================================
 function Centrixity:Notify(config)
 	config = config or {}
-	local notifType = config.Type or "Info"
+	local notifType = config.Type or "Info" -- Info, Success, Error, Warning
 	local title = config.Title or "Notification"
 	local message = config.Message or "No message provided."
-	local duration = config.Duration or 6
+	local duration = config.Duration or 12
 	
 	local theme = self.Theme
 	
-	-- Notification-specific configuration based on type
+	-- Notification Configuration
 	local typeData = {
 		Info = {
 			AccentColor = theme.Primary,
-			SecondaryColor = theme.Secondary,
-			Icon = "rbxassetid://7733960981",
+			Icon = "rbxassetid://7733960981", -- Info
 		},
 		Success = {
 			AccentColor = theme.Success,
-			SecondaryColor = Color3.fromRGB(45, 200, 95),
-			Icon = "rbxassetid://7733715400",
+			Icon = "rbxassetid://7733715400", -- Check
 		},
 		Error = {
 			AccentColor = theme.Error,
-			SecondaryColor = Color3.fromRGB(220, 50, 50),
-			Icon = "rbxassetid://7733658504",
+			Icon = "rbxassetid://7733658504", -- X
 		},
 		Warning = {
 			AccentColor = theme.Warning,
-			SecondaryColor = Color3.fromRGB(255, 160, 50),
-			Icon = "rbxassetid://7733964719",
+			Icon = "rbxassetid://7733964719", -- Warning
 		}
 	}
 	
 	local data = typeData[notifType] or typeData.Info
 	
-	-- Notification Manager GUI setup
+	-- Manager GUI setup
 	if not self._NotifGui then
 		self._NotifGui = Utilities.Create("ScreenGui", {
 			Name = "CentrixityNotifications",
@@ -1017,7 +1013,6 @@ function Centrixity:Notify(config)
 			ResetOnSpawn = false,
 		})
 		
-		-- Try to parent to CoreGui for executor compatibility
 		local success = pcall(function()
 			self._NotifGui.Parent = game:GetService("CoreGui")
 		end)
@@ -1039,213 +1034,253 @@ function Centrixity:Notify(config)
 		self._NotifHolder.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	end
 	
-	-- Notification Wrapper (to maintain layout space)
+	-- Wrapper for animations
 	local wrapper = Utilities.Create("Frame", {
 		Name = "Wrapper",
-		Size = UDim2.new(0, 310, 0, 0), -- Animated height
+		Size = UDim2.new(0, 310, 0, 0),
 		BackgroundTransparency = 1,
 		Parent = self._NotifHolder
 	})
 	
-	-- The Actual Notification Card
+	-- Main Notification Card (Black Design)
 	local card = Utilities.Create("Frame", {
 		Name = "Notification",
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		Position = UDim2.new(1.2, 0, 0, 0), -- Start offscreen right
-		BackgroundColor3 = theme.Background,
-		BackgroundTransparency = 0.05, -- Slight transparency for "premium" look
-		ClipsDescendants = false,
+		Position = UDim2.new(1.3, 0, 0, 0),
+		BackgroundColor3 = Color3.fromRGB(13, 13, 13), -- Deep Black
+		BorderSizePixel = 0,
+		ClipsDescendants = true,
 		Parent = wrapper
 	})
 	
-	Utilities.AddCorner(card, 12)
-	local stroke = Utilities.AddStroke(card, theme.Border, 1.2)
-	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	Utilities.AddCorner(card, 16)
+	local mainStroke = Utilities.AddStroke(card, theme.Border, 1)
 	
-	-- Accent Bar (The "Glow" indicator on the left)
-	local accent = Utilities.Create("Frame", {
-		Name = "Accent",
-		Size = UDim2.new(0, 4, 1, -16),
-		Position = UDim2.new(0, 4, 0, 8),
-		BackgroundColor3 = data.AccentColor,
-		BorderSizePixel = 0,
-		Parent = card
-	})
+	-- Padding for internal elements
+	local mainPadding = Utilities.AddPadding(card, 0, 0, 0, 0)
 	
-	Utilities.AddCorner(accent, 10)
-	Utilities.CreateGradient(accent, 90, data.AccentColor, data.SecondaryColor)
-	
-	-- Content Area
-	local content = Utilities.Create("Frame", {
-		Name = "Content",
+	-- Content Body
+	local body = Utilities.Create("Frame", {
+		Name = "Body",
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		Parent = card
 	})
+	Utilities.AddPadding(body, 20, 20, 20, 20)
 	
-	Utilities.AddPadding(content, 18, 20, 22, 24) -- Generous spacing
-	
-	-- Header Area
+	-- Header Row (Icon + Title + Controls)
 	local header = Utilities.Create("Frame", {
 		Name = "Header",
 		Size = UDim2.new(1, 0, 0, 24),
 		BackgroundTransparency = 1,
-		Parent = content
+		Parent = body
 	})
 	
-	local headerLayout = Utilities.AddListLayout(header, 10, Enum.FillDirection.Horizontal, Enum.HorizontalAlignment.Left)
-	headerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	
-	-- Icon with Gradient
-	local iconFrame = Utilities.Create("Frame", {
-		Size = UDim2.new(0, 20, 0, 20),
+	local typeIcon = Utilities.Create("ImageLabel", {
+		Name = "TypeIcon",
+		Image = data.Icon,
+		ImageColor3 = data.AccentColor,
+		Size = UDim2.new(0, 24, 0, 24),
+		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundTransparency = 1,
 		Parent = header
 	})
 	
-	local icon = Utilities.Create("ImageLabel", {
-		Name = "Icon",
-		Image = data.Icon,
-		ImageColor3 = data.AccentColor,
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		Parent = iconFrame
-	})
-	
-	Utilities.CreateGradient(icon, 90, data.AccentColor, data.SecondaryColor)
-	
-	-- Title
 	local titleLabel = Utilities.Create("TextLabel", {
 		Name = "Title",
 		Text = title,
-		FontFace = theme.FontSemiBold,
+		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 		TextColor3 = theme.TextPrimary,
-		TextSize = 14,
+		TextSize = 16,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, -30, 1, 0),
+		Position = UDim2.new(0, 34, 0, 0),
+		Size = UDim2.new(1, -100, 1, 0),
 		BackgroundTransparency = 1,
 		Parent = header
 	})
 	
-	-- Message Content
+	local controls = Utilities.Create("Frame", {
+		Name = "Controls",
+		AnchorPoint = Vector2.new(1, 0.5),
+		Position = UDim2.new(1, 0, 0.5, 0),
+		Size = UDim2.new(0, 50, 0, 24),
+		BackgroundTransparency = 1,
+		Parent = header
+	})
+	Utilities.AddListLayout(controls, 8, Enum.FillDirection.Horizontal, Enum.HorizontalAlignment.Right)
+	
+	local expandIcon = Utilities.Create("ImageLabel", {
+		Name = "Expand",
+		Image = "rbxassetid://10137941941", -- Chevron Up
+		ImageColor3 = theme.TextMuted,
+		Size = UDim2.new(0, 18, 0, 18),
+		BackgroundTransparency = 1,
+		Parent = controls
+	})
+	
+	local closeBtn = Utilities.Create("ImageButton", {
+		Name = "Close",
+		Image = "rbxassetid://10137941830", -- Close X
+		ImageColor3 = theme.TextMuted,
+		Size = UDim2.new(0, 18, 0, 18),
+		BackgroundTransparency = 1,
+		Parent = controls
+	})
+	
+	-- Description Area
 	local messageLabel = Utilities.Create("TextLabel", {
 		Name = "Message",
 		Text = message,
-		RichText = true,
 		FontFace = theme.Font,
 		TextColor3 = theme.TextSecondary,
-		TextSize = 12,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
 		TextWrapped = true,
-		Position = UDim2.new(0, 0, 0, 32),
-		Size = UDim2.new(1, 0, 0, 0),
+		Position = UDim2.new(0, 34, 0, 34),
+		Size = UDim2.new(1, -34, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		Parent = content
+		Parent = body
 	})
 	
-	-- Progress Bar (at the very bottom)
+	-- Action Row
+	local actions = Utilities.Create("Frame", {
+		Name = "Actions",
+		Size = UDim2.new(1, 0, 0, 32),
+		Position = UDim2.new(0, 34, 0, 0), -- Placeholder offset
+		BackgroundTransparency = 1,
+		Parent = body
+	})
+	Utilities.AddListLayout(actions, 0, Enum.FillDirection.Vertical)
+	
+	local okayBtn = Utilities.Create("TextButton", {
+		Name = "ActionBtn",
+		Text = "Okay",
+		FontFace = theme.FontMedium,
+		TextColor3 = theme.TextPrimary,
+		TextSize = 14,
+		Size = UDim2.new(0, 70, 0, 32),
+		BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+		AutoButtonColor = false,
+		Parent = actions
+	})
+	Utilities.AddCorner(okayBtn, 8)
+	Utilities.AddStroke(okayBtn, theme.Border, 1)
+	
+	-- Status Footer (countdown timer)
+	local footer = Utilities.Create("Frame", {
+		Name = "Footer",
+		Size = UDim2.new(1, 0, 0, 38),
+		BackgroundColor3 = Color3.fromRGB(20, 20, 20), -- Slightly lighter black
+		BorderSizePixel = 0,
+		Parent = card
+	})
+	
+	local footerLabel = Utilities.Create("TextLabel", {
+		Name = "Status",
+		Text = "This message will close in <font color=\"#ffffff\"><b>" .. duration .. "</b></font> seconds. <font color=\"#ffffff\"><b>Click to stop.</b></font>",
+		RichText = true,
+		FontFace = theme.Font,
+		TextColor3 = theme.TextSecondary,
+		TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Parent = footer
+	})
+	
+	local footerClick = Utilities.Create("TextButton", {
+		Name = "StopTrigger",
+		Text = "",
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		ZIndex = 5,
+		Parent = footer
+	})
+	
+	-- Progress Bar (at the absolute bottom)
 	local progressContainer = Utilities.Create("Frame", {
-		Name = "ProgressContainer",
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.new(0.5, 0, 1, 0),
-		Size = UDim2.new(1, -24, 0, 3),
+		Name = "Progress",
+		AnchorPoint = Vector2.new(0, 1),
+		Position = UDim2.new(0, 0, 1, 0),
+		Size = UDim2.new(1, 0, 0, 3),
 		BackgroundColor3 = theme.BackgroundDark,
 		BorderSizePixel = 0,
 		Parent = card
 	})
-	Utilities.AddPadding(progressContainer, 0, 0, 8, 0) -- Lift it up slightly
-	
-	local progressBG = Utilities.Create("Frame", {
-		Name = "BG",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundColor3 = theme.BackgroundLight,
-		BackgroundTransparency = 0.5,
-		BorderSizePixel = 0,
-		Parent = progressContainer
-	})
-	Utilities.AddCorner(progressBG, 4)
 	
 	local progressFill = Utilities.Create("Frame", {
 		Name = "Fill",
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundColor3 = data.AccentColor,
 		BorderSizePixel = 0,
-		Parent = progressBG
-	})
-	Utilities.AddCorner(progressFill, 4)
-	Utilities.CreateGradient(progressFill, 0, data.AccentColor, data.SecondaryColor)
-	
-	-- Interactive Button (for manual dismissal)
-	local btn = Utilities.Create("TextButton", {
-		Name = "Dismiss",
-		Text = "",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		ZIndex = 10,
-		Parent = card
+		Parent = progressContainer
 	})
 	
 	-- Logic Variables
 	local isDismissed = false
+	local isStopped = false
 	local progressTween
+	local remainingTime = duration
 	
-	-- Function: Dismiss
+	-- Functions
 	local function doDismiss()
 		if isDismissed then return end
 		isDismissed = true
-		
 		if progressTween then progressTween:Cancel() end
 		
-		-- Animate out
-		Utilities.Tween(card, {Position = UDim2.new(1.3, 0, 0, 0)}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-		
+		Utilities.Tween(card, {Position = UDim2.new(1.4, 0, 0, 0)}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In)
 		task.delay(0.4, function()
 			Utilities.Tween(wrapper, {Size = UDim2.new(0, 310, 0, 0)}, 0.3)
-			task.delay(0.35, function()
-				wrapper:Destroy()
-			end)
+			task.delay(0.3, function() wrapper:Destroy() end)
 		end)
 	end
 	
-	-- Entrance Logic
+	-- Button Events
+	closeBtn.MouseButton1Click:Connect(doDismiss)
+	okayBtn.MouseButton1Click:Connect(doDismiss)
+	
+	footerClick.MouseButton1Click:Connect(function()
+		if isStopped then return end
+		isStopped = true
+		if progressTween then progressTween:Cancel() end
+		footerLabel.Text = "Self-destruct cancelled."
+		Utilities.Tween(progressFill, {BackgroundTransparency = 1}, 0.3)
+	end)
+	
+	-- Animation Logic
 	task.spawn(function()
-		-- Measure height first after parenting
 		task.wait(0.05)
 		local targetHeight = card.AbsoluteSize.Y
 		
-		-- Animate wrapper height expansion
 		Utilities.Tween(wrapper, {Size = UDim2.new(0, 310, 0, targetHeight)}, 0.4, Enum.EasingStyle.Quart)
-		
-		-- Animate card sliding in
 		task.wait(0.1)
-		local slideTween = Utilities.Tween(card, {Position = UDim2.new(0, 0, 0, 0)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		Utilities.Tween(card, {Position = UDim2.new(0, 0, 0, 0)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		
-		slideTween.Completed:Connect(function()
-			-- Start progress depletion
-			progressTween = Utilities.Tween(progressFill, {Size = UDim2.new(0, 0, 1, 0)}, duration, Enum.EasingStyle.Linear)
-			progressTween.Completed:Connect(function()
-				if not isDismissed then doDismiss() end
-			end)
+		-- Countdown Logic
+		task.spawn(function()
+			while remainingTime > 0 and not isDismissed and not isStopped do
+				task.wait(1)
+				remainingTime = remainingTime - 1
+				footerLabel.Text = "This message will close in <font color=\"#ffffff\"><b>" .. remainingTime .. "</b></font> seconds. <font color=\"#ffffff\"><b>Click to stop.</b></font>"
+			end
+		end)
+		
+		progressTween = Utilities.Tween(progressFill, {Size = UDim2.new(0, 0, 1, 0)}, duration, Enum.EasingStyle.Linear)
+		progressTween.Completed:Connect(function()
+			if not isDismissed and not isStopped then doDismiss() end
 		end)
 	end)
 	
-	-- Event Listeners
-	btn.MouseButton1Click:Connect(doDismiss)
-	
-	btn.MouseEnter:Connect(function()
-		if not isDismissed then
-			Utilities.Tween(stroke, {Color = theme.Primary, Thickness = 1.5}, 0.2)
-		end
+	-- Hover visual for Okay button
+	okayBtn.MouseEnter:Connect(function()
+		Utilities.Tween(okayBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}, 0.2)
 	end)
-	
-	btn.MouseLeave:Connect(function()
-		if not isDismissed then
-			Utilities.Tween(stroke, {Color = theme.Border, Thickness = 1.2}, 0.2)
-		end
+	okayBtn.MouseLeave:Connect(function()
+		Utilities.Tween(okayBtn, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.2)
 	end)
 end
 
