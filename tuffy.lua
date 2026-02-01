@@ -940,13 +940,15 @@ function SubPage:AddToggle(config)
 		toggle:Set(not toggle.Value)
 	end)
 	
-	-- Hover effects
+	-- Hover effects (Color/Transparency highlight instead of scaling)
 	toggle.Button.MouseEnter:Connect(function()
-		Utilities.Tween(toggle.Checkbox, {Size = UDim2.new(0, 20, 0, 20)}, 0.15)
+		Utilities.Tween(toggle.Frame, {BackgroundTransparency = 0.95}, 0.2)
+		Utilities.Tween(toggle.CheckboxStroke, {Thickness = 1.5}, 0.2)
 	end)
 	
 	toggle.Button.MouseLeave:Connect(function()
-		Utilities.Tween(toggle.Checkbox, {Size = UDim2.new(0, 18, 0, 18)}, 0.15)
+		Utilities.Tween(toggle.Frame, {BackgroundTransparency = 1}, 0.2)
+		Utilities.Tween(toggle.CheckboxStroke, {Thickness = 1}, 0.2)
 	end)
 	
 	-- Store component
@@ -1074,9 +1076,16 @@ function Centrixity:Notify(title, text, duration, notifType)
 		Utilities.AddCorner(notification, 10)
 		Utilities.AddStroke(notification, Color3.fromRGB(30, 31, 38), 1)
 
-		-- Main Layout
-		local layout = Utilities.AddListLayout(notification, 8)
-		Utilities.AddPadding(notification, 0, 0, 4, 0) -- Bottom padding for the progress bar
+		-- Main Layout (Scroll/List for content only)
+		local contentHolder = Utilities.Create("Frame", {
+			Name = "ContentBody",
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
+			BackgroundTransparency = 1,
+			Parent = notification
+		})
+		Utilities.AddListLayout(contentHolder, 8)
+		Utilities.AddPadding(contentHolder, 0, 0, 8, 0) -- Internal spacing
 
 		-- Initial Position (Off-screen)
 		notification.AnchorPoint = Vector2.new(0, 0)
@@ -1087,7 +1096,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Name = "Header",
 			Size = UDim2.new(1, 0, 0, 38),
 			BackgroundTransparency = 1,
-			Parent = notification
+			Parent = contentHolder
 		})
 		Utilities.AddPadding(header, 0, 12, 0, 12)
 
@@ -1136,7 +1145,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Size = UDim2.new(1, 0, 0, 0),
 			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
-			Parent = notification
+			Parent = contentHolder
 		})
 		Utilities.AddPadding(content, 0, 16, 12, 44) -- Left alignment offset to match icon
 
@@ -1160,7 +1169,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Name = "Actions",
 			Size = UDim2.new(1, 0, 0, 32),
 			BackgroundTransparency = 1,
-			Parent = notification
+			Parent = contentHolder
 		})
 		Utilities.AddPadding(actions, 0, 16, 12, 44)
 
@@ -1192,10 +1201,11 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Parent = continueBtn
 		})
 
-		-- PROGRESS BAR (THIN BOTTOM)
+		-- PROGRESS BAR (STRICTLY AT THE BOTTOM EDGE)
 		local progressContainer = Utilities.Create("Frame", {
 			Name = "ProgressHolder",
 			Size = UDim2.new(1, 0, 0, 2),
+			Position = UDim2.new(0, 0, 1, -2), -- Stick to the bottom edge
 			BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 			BorderSizePixel = 0,
 			Parent = notification
@@ -1208,6 +1218,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			BorderSizePixel = 0,
 			Parent = progressContainer
 		})
+		Utilities.AddCorner(progressBar, 4) -- Round the progress fill ends too
 
 		-- ANIMATIONS
 		local function dismiss()
