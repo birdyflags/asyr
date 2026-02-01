@@ -526,7 +526,7 @@ function Tab:_CreateUI()
 		Parent = self.PageFrame
 	})
 	Utilities.AddPadding(self.SubPageContainer, 15, 15, 15, 15)
-	Utilities.AddListLayout(self.SubPageContainer, 15, Enum.FillDirection.Horizontal)
+	Utilities.AddListLayout(self.SubPageContainer, 15, Enum.FillDirection.Vertical)
 	
 	-- Click handler
 	local clickButton = Utilities.Create("TextButton", {
@@ -657,7 +657,7 @@ function SubPage:_CreateUI()
 	-- Section Container (left or right column)
 	self.SectionFrame = Utilities.Create("Frame", {
 		Name = "Section_" .. self.Name,
-		Size = UDim2.new(0, 290, 0, 50),
+		Size = UDim2.new(1, 0, 0, 50),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = theme.Background,
 		ClipsDescendants = true,
