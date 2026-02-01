@@ -659,9 +659,9 @@ function SubPage:_CreateUI()
 		Name = "Section_" .. self.Name,
 		Size = UDim2.new(1, 0, 0, 50),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundColor3 = theme.Background,
 		ClipsDescendants = true,
 		LayoutOrder = self.LayoutOrder,
+		Visible = false,
 		Parent = self.Tab.SubPageContainer
 	})
 	Utilities.AddCorner(self.SectionFrame, 8)
@@ -1081,7 +1081,9 @@ function SubPage:AddDropdown(config)
 		Multi = config.Multi or false,
 		Callback = config.Callback or function() end,
 		Open = false,
-		OptionFrames = {}
+		OptionFrames = {},
+		Window = self.Window,
+		Tab = self.Tab
 	}
 	
 	-- Main Container
