@@ -621,9 +621,11 @@ function Tab:AddSubPage(config)
 	if self.Selected then
 		self:_UpdateSubPageTabs()
 		
-		-- Select first subpage
+		-- Ensure only the first subpage is visible if it's currently selected
 		if #self.SubPages == 1 then
 			subPage:Select()
+		else
+			subPage.SectionFrame.Visible = false
 		end
 	end
 	
@@ -956,8 +958,123 @@ function SubPage:AddToggle(config)
 end
 
 function SubPage:AddSlider(config)
-	-- TODO: Implement slider
-	return {}
+	config = config or {}
+	local theme = Centrixity.Theme
+	
+	local slider = {
+		Name = config.Name or "Slider",
+		Min = config.Min or 0,
+		Max = config.Max or 100,
+		Value = config.Default or config.Min or 0,
+		Callback = config.Callback or function() end,
+		Precision = config.Precision or 0,
+		Dragging = false
+	}
+	
+	-- Container
+	slider.Frame = Utilities.Create("Frame", {
+		Name = "Slider_" .. slider.Name,
+		Size = UDim2.new(1, 0, 0, 42),
+		BackgroundTransparency = 1,
+		LayoutOrder = #self.Components + 1,
+		Parent = self.ComponentHolder
+	})
+	
+	slider.Label = Utilities.Create("TextLabel", {
+		Text = slider.Name,
+		FontFace = theme.Font,
+		TextColor3 = theme.TextSecondary,
+		TextSize = 13,
+		Position = UDim2.new(0, 5, 0, 0),
+		Size = UDim2.new(0.6, 0, 0, 20),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BackgroundTransparency = 1,
+		Parent = slider.Frame
+	})
+	
+	slider.ValueDisplay = Utilities.Create("TextLabel", {
+		Text = tostring(slider.Value),
+		FontFace = theme.FontMedium,
+		TextColor3 = theme.Primary,
+		TextSize = 12,
+		Position = UDim2.new(0.6, 0, 0, 0),
+		Size = UDim2.new(0.4, -5, 0, 20),
+		TextXAlignment = Enum.TextXAlignment.Right,
+		BackgroundTransparency = 1,
+		Parent = slider.Frame
+	})
+	
+	-- Track
+	slider.Track = Utilities.Create("Frame", {
+		Name = "Track",
+		Position = UDim2.new(0, 5, 0, 26),
+		Size = UDim2.new(1, -10, 0, 4),
+		BackgroundColor3 = theme.BackgroundLight,
+		BorderSizePixel = 0,
+		Parent = slider.Frame
+	})
+	Utilities.AddCorner(slider.Track, 4)
+	Utilities.AddStroke(slider.Track, theme.Border, 1)
+	
+	-- Fill
+	slider.Fill = Utilities.Create("Frame", {
+		Name = "Fill",
+		Size = UDim2.fromScale((slider.Value - slider.Min) / (slider.Max - slider.Min), 1),
+		BackgroundColor3 = theme.Primary,
+		BorderSizePixel = 0,
+		Parent = slider.Track
+	})
+	Utilities.AddCorner(slider.Fill, 4)
+	Utilities.CreateGradient(slider.Fill, 0)
+	
+	-- Knob
+	slider.Knob = Utilities.Create("Frame", {
+		Name = "Knob",
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale((slider.Value - slider.Min) / (slider.Max - slider.Min), 0.5),
+		Size = UDim2.fromOffset(12, 12),
+		BackgroundColor3 = theme.TextPrimary,
+		BorderSizePixel = 0,
+		Parent = slider.Track
+	})
+	Utilities.AddCorner(slider.Knob, 12)
+	Utilities.AddStroke(slider.Knob, theme.Primary, 2)
+
+	-- Logic
+	local function update(input)
+		local pos = math.clamp((input.Position.X - slider.Track.AbsolutePosition.X) / slider.Track.AbsoluteSize.X, 0, 1)
+		local rawValue = pos * (slider.Max - slider.Min) + slider.Min
+		local value = math.floor(rawValue * (10 ^ slider.Precision) + 0.5) / (10 ^ slider.Precision)
+		
+		slider.Value = value
+		slider.ValueDisplay.Text = tostring(value)
+		Utilities.Tween(slider.Fill, {Size = UDim2.fromScale(pos, 1)}, 0.1)
+		Utilities.Tween(slider.Knob, {Position = UDim2.fromScale(pos, 0.5)}, 0.1)
+		
+		task.spawn(slider.Callback, value)
+	end
+	
+	slider.Frame.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			slider.Dragging = true
+			update(input)
+		end
+	end)
+	
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			slider.Dragging = false
+		end
+	end)
+	
+	UserInputService.InputChanged:Connect(function(input)
+		if slider.Dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+			update(input)
+		end
+	end)
+	
+	table.insert(self.Components, slider)
+	return slider
 end
 
 function SubPage:AddButton(config)
@@ -1073,6 +1190,7 @@ end
 function SubPage:AddDropdown(config)
 	config = config or {}
 	local theme = Centrixity.Theme
+	local window = self.Window
 	
 	local dropdown = {
 		Name = config.Name or "Dropdown",
@@ -1082,14 +1200,13 @@ function SubPage:AddDropdown(config)
 		Callback = config.Callback or function() end,
 		Open = false,
 		OptionFrames = {},
-		Window = self.Window,
-		Tab = self.Tab
+		Window = window
 	}
 	
 	-- Main Container
 	dropdown.Frame = Utilities.Create("Frame", {
 		Name = "Dropdown_" .. dropdown.Name,
-		Size = UDim2.new(1, 0, 0, 36),
+		Size = UDim2.new(1, 0, 0, 34),
 		BackgroundColor3 = theme.BackgroundLight,
 		BorderSizePixel = 0,
 		LayoutOrder = #self.Components + 1,
@@ -1101,7 +1218,7 @@ function SubPage:AddDropdown(config)
 	-- Header Area
 	dropdown.Header = Utilities.Create("TextButton", {
 		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 36),
+		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
 		Text = "",
 		Parent = dropdown.Frame
@@ -1142,14 +1259,14 @@ function SubPage:AddDropdown(config)
 		Parent = dropdown.Header
 	})
 	
-	-- List Area (Moved to global level to avoid clipping)
-	if not self.Window._DropdownLayer then
-		self.Window._DropdownLayer = Utilities.Create("Frame", {
+	-- List Area (Global Overlay)
+	if not window._DropdownLayer then
+		window._DropdownLayer = Utilities.Create("Frame", {
 			Name = "DropdownOverlay",
 			Size = UDim2.new(1, 0, 1, 0),
 			BackgroundTransparency = 1,
 			ZIndex = 100,
-			Parent = self.Window.MainFrame -- Or ScreenGui for absolute overflow
+			Parent = window.MainFrame
 		})
 	end
 
@@ -1158,19 +1275,18 @@ function SubPage:AddDropdown(config)
 		Size = UDim2.new(0, 0, 0, 0),
 		BackgroundColor3 = theme.Background,
 		BorderSizePixel = 0,
-		ScrollBarThickness = 2,
+		ScrollBarThickness = 3,
 		ScrollBarImageColor3 = theme.Primary,
 		ClipsDescendants = true,
 		Visible = false,
-		ZIndex = 100,
-		Parent = self.Window._DropdownLayer
+		ZIndex = 101,
+		Parent = window._DropdownLayer
 	})
 	Utilities.AddCorner(dropdown.List, 6)
 	dropdown.ListStroke = Utilities.AddStroke(dropdown.List, theme.Border, 1)
 	local listLayout = Utilities.AddListLayout(dropdown.List, 4)
 	Utilities.AddPadding(dropdown.List, 6, 6, 6, 6)
 	
-	-- Search Bar
 	dropdown.Search = Utilities.Create("TextBox", {
 		Name = "Search",
 		PlaceholderText = "Search...",
@@ -1179,7 +1295,7 @@ function SubPage:AddDropdown(config)
 		FontFace = theme.Font,
 		TextSize = 12,
 		TextColor3 = theme.TextPrimary,
-		Size = UDim2.new(1, 0, 0, 26),
+		Size = UDim2.new(1, 0, 0, 28),
 		BackgroundColor3 = theme.BackgroundLight,
 		BorderSizePixel = 0,
 		Parent = dropdown.List
@@ -1187,24 +1303,21 @@ function SubPage:AddDropdown(config)
 	Utilities.AddCorner(dropdown.Search, 4)
 	Utilities.AddPadding(dropdown.Search, 0, 8, 0, 8)
 	
-	-- Update Value Label
-	local function updateValue()
+	local function updateValueLabel()
 		if dropdown.Multi then
 			local count = 0
-			for _ in pairs(dropdown.Selected) do count = count + 1 end
+			for _, v in pairs(dropdown.Selected) do if v then count = count + 1 end end
 			dropdown.ValueLabel.Text = count > 0 and (count .. " Selected") or "None"
 		else
-			dropdown.ValueLabel.Text = tostring(dropdown.Selected) ~= "" and tostring(dropdown.Selected) or "None"
+			dropdown.ValueLabel.Text = (tostring(dropdown.Selected) ~= "") and tostring(dropdown.Selected) or "None"
 		end
 	end
 	
-	-- Add Option Function
 	function dropdown:AddOption(name)
 		local option = {}
 		option.Frame = Utilities.Create("TextButton", {
-			Name = "Option_" .. name,
 			Text = "",
-			Size = UDim2.new(1, 0, 0, 26),
+			Size = UDim2.new(1, 0, 0, 28),
 			BackgroundColor3 = theme.BackgroundLight,
 			BackgroundTransparency = 1,
 			Parent = dropdown.List
@@ -1216,17 +1329,17 @@ function SubPage:AddDropdown(config)
 			FontFace = theme.Font,
 			TextColor3 = theme.TextSecondary,
 			TextSize = 12,
-			Position = UDim2.new(0, 8, 0, 0),
-			Size = UDim2.new(1, -16, 1, 0),
+			Position = UDim2.new(0, 10, 0, 0),
+			Size = UDim2.new(1, -35, 1, 0),
 			TextXAlignment = Enum.TextXAlignment.Left,
 			BackgroundTransparency = 1,
 			Parent = option.Frame
 		})
 		
 		option.Check = Utilities.Create("ImageLabel", {
-			Image = "rbxassetid://7733715400",
+			Image = "rbxassetid://137946959393180", -- Premium Check icon
 			ImageColor3 = theme.Primary,
-			Size = UDim2.fromOffset(12, 12),
+			Size = UDim2.fromOffset(14, 14),
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.new(1, -8, 0.5, 0),
 			BackgroundTransparency = 1,
@@ -1234,7 +1347,7 @@ function SubPage:AddDropdown(config)
 			Parent = option.Frame
 		})
 		
-		local function refreshState()
+		local function refresh()
 			local isSelected = dropdown.Multi and dropdown.Selected[name] or (dropdown.Selected == name)
 			Utilities.Tween(option.Label, {TextColor3 = isSelected and theme.TextPrimary or theme.TextSecondary}, 0.2)
 			Utilities.Tween(option.Check, {ImageTransparency = isSelected and 0 or 1}, 0.2)
@@ -1244,54 +1357,47 @@ function SubPage:AddDropdown(config)
 		option.Frame.MouseButton1Click:Connect(function()
 			if dropdown.Multi then
 				dropdown.Selected[name] = not dropdown.Selected[name]
-				if not dropdown.Selected[name] then dropdown.Selected[name] = nil end
 			else
 				dropdown.Selected = name
 				dropdown:Toggle(false)
 			end
-			
-			for _, opt in pairs(dropdown.OptionFrames) do opt:Refresh() end
-			updateValue()
-			pcall(dropdown.Callback, dropdown.Selected)
+			for _, o in pairs(dropdown.OptionFrames) do o.Refresh() end
+			updateValueLabel()
+			task.spawn(dropdown.Callback, dropdown.Selected)
 		end)
 		
-		option.Frame.MouseEnter:Connect(function()
-			Utilities.Tween(option.Frame, {BackgroundTransparency = 0.95}, 0.1)
-		end)
-		option.Frame.MouseLeave:Connect(function()
-			local isSelected = dropdown.Multi and dropdown.Selected[name] or (dropdown.Selected == name)
-			Utilities.Tween(option.Frame, {BackgroundTransparency = isSelected and 0.9 or 1}, 0.1)
-		end)
-		
-		option.Refresh = refreshState
+		option.Refresh = refresh
 		dropdown.OptionFrames[name] = option
-		refreshState()
+		refresh()
 	end
 	
-	-- Toggle Function
+	local positionLoop
 	function dropdown:Toggle(state)
 		self.Open = (state ~= nil) and state or not self.Open
 		
 		if self.Open then
-			-- Close others
-			if self.Window._ActiveDropdown and self.Window._ActiveDropdown ~= self then
-				self.Window._ActiveDropdown:Toggle(false)
+			-- Close Active
+			if window._ActiveDropdown and window._ActiveDropdown ~= self then
+				window._ActiveDropdown:Toggle(false)
 			end
-			self.Window._ActiveDropdown = self
+			window._ActiveDropdown = self
 			
-			-- Position List
-			local absPos = dropdown.Frame.AbsolutePosition
-			local mainPos = self.Window.MainFrame.AbsolutePosition
-			local relativePos = absPos - mainPos
-			
-			dropdown.List.Position = UDim2.new(0, relativePos.X, 0, relativePos.Y + 38)
-			dropdown.List.Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 0)
 			dropdown.List.Visible = true
+			local function updatePos()
+				local absPos = dropdown.Frame.AbsolutePosition
+				local mainPos = window.MainFrame.AbsolutePosition
+				dropdown.List.Position = UDim2.new(0, absPos.X - mainPos.X, 0, absPos.Y - mainPos.Y + 38)
+				dropdown.List.Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, dropdown.List.Size.Y.Offset)
+			end
+			updatePos()
+			positionLoop = RunService.RenderStepped:Connect(updatePos)
 			
-			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 150)}, 0.3, Enum.EasingStyle.Quart)
+			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 160)}, 0.3, Enum.EasingStyle.Quart)
 			Utilities.Tween(dropdown.Icon, {Rotation = 180}, 0.3)
 		else
-			if self.Window._ActiveDropdown == self then self.Window._ActiveDropdown = nil end
+			if window._ActiveDropdown == self then window._ActiveDropdown = nil end
+			if positionLoop then positionLoop:Disconnect() positionLoop = nil end
+			
 			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 0)}, 0.2, Enum.EasingStyle.Quart).Completed:Connect(function()
 				if not self.Open then dropdown.List.Visible = false end
 			end)
@@ -1299,27 +1405,15 @@ function SubPage:AddDropdown(config)
 		end
 	end
 	
-	-- Close if tab changes
-	self.Tab.PageFrame:GetPropertyChangedSignal("Visible"):Connect(function()
-		if not self.Tab.PageFrame.Visible and dropdown.Open then
-			dropdown:Toggle(false)
-		end
-	end)
-	
-	-- Init Options
-	for _, opt in ipairs(dropdown.Options) do dropdown:AddOption(opt) end
-	updateValue()
-	
-	-- Header Click
 	dropdown.Header.MouseButton1Click:Connect(function() dropdown:Toggle() end)
 	
-	-- Search Logic
 	dropdown.Search:GetPropertyChangedSignal("Text"):Connect(function()
-		local query = dropdown.Search.Text:lower()
-		for name, opt in pairs(dropdown.OptionFrames) do
-			opt.Frame.Visible = name:lower():find(query) ~= nil
-		end
+		local q = dropdown.Search.Text:lower()
+		for n, f in pairs(dropdown.OptionFrames) do f.Frame.Visible = n:lower():find(q) ~= nil end
 	end)
+	
+	for _, v in ipairs(dropdown.Options) do dropdown:AddOption(v) end
+	updateValueLabel()
 	
 	table.insert(self.Components, dropdown)
 	return dropdown
