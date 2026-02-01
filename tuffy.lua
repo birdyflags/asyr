@@ -410,7 +410,7 @@ function Window:Hide()
 	end)
 end
 
-function Window:CreateTab(config)
+function Window:AddTab(config)
 	local tab = Tab.new(self, config)
 	table.insert(self.Tabs, tab)
 	
@@ -613,7 +613,7 @@ function Tab:_UpdateSubPageTabs()
 	end
 end
 
-function Tab:CreateSubPage(config)
+function Tab:AddSubPage(config)
 	local subPage = SubPage.new(self, config)
 	table.insert(self.SubPages, subPage)
 	
