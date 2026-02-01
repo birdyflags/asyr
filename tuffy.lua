@@ -981,7 +981,7 @@ end
 -- NOTIFICATION SYSTEM (REFINED)
 -- ============================================
 -- ============================================
--- NOTIFICATION SYSTEM (NEW CUSTOM DESIGN)
+-- NOTIFICATION SYSTEM (REWRITTEN & POLISHED)
 -- ============================================
 function Centrixity:Notify(title, text, duration, notifType)
 	if not self.Notifications or (self.Notifications and not self.Notifications.Enabled) then return end
@@ -998,7 +998,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 	duration = duration or 6
 	notifType = notifType or "Info"
 	
-	-- Theme Colors & Icons
+	-- Deep Theme Colors & Assets
 	local typeData = {
 		Success = {
 			Color = Color3.fromRGB(47, 255, 0),
@@ -1009,8 +1009,8 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Icon = "rbxassetid://70479764730792"
 		},
 		Error = {
-			Color = Color3.fromRGB(255, 50, 56), -- Requested Red
-			Icon = "rbxassetid://70479764730792" -- Requested same as warning
+			Color = Color3.fromRGB(255, 50, 56),
+			Icon = "rbxassetid://70479764730792" -- Same as warning as requested
 		},
 		Info = {
 			Color = Color3.fromRGB(0, 150, 255),
@@ -1035,8 +1035,8 @@ function Centrixity:Notify(title, text, duration, notifType)
 		self._NotifHolder = Utilities.Create("Frame", {
 			Name = "NotificationHolder",
 			AnchorPoint = Vector2.new(1, 1),
-			Position = UDim2.new(1, -20, 1, -20),
-			Size = UDim2.new(0, 310, 0, 0),
+			Position = UDim2.new(1, -25, 1, -25),
+			Size = UDim2.new(0, 320, 0, 0),
 			BackgroundTransparency = 1,
 			AutomaticSize = Enum.AutomaticSize.Y,
 			Parent = self._NotifGui
@@ -1051,7 +1051,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			pcall(function() setthreadidentity(8) end)
 		end
 
-		-- Wrapper for UIListLayout
+		-- Wrapper (For reliable stacking animations)
 		local wrapper = Utilities.Create("Frame", {
 			Name = "NotifWrapper",
 			BackgroundTransparency = 1,
@@ -1061,232 +1061,178 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Parent = self._NotifHolder
 		})
 
-		-- Main Notification Frame
+		-- Notification Frame
 		local notification = Utilities.Create("Frame", {
 			Name = "Notification",
 			BackgroundColor3 = Color3.fromRGB(16, 17, 21),
 			BorderSizePixel = 0,
-			AutomaticSize = Enum.AutomaticSize.XY,
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			ClipsDescendants = true,
 			Parent = wrapper
 		})
-		Utilities.AddCorner(notification, 8)
-		Utilities.AddListLayout(notification, 0)
-		
-		-- Start off-screen
-		local startPos = UDim2.new(1.5, 0, 0, 0)
-		local endPos = UDim2.new(1, 0, 0, 0)
-		notification.AnchorPoint = Vector2.new(1, 0)
-		notification.Position = startPos
+		Utilities.AddCorner(notification, 10)
+		Utilities.AddStroke(notification, Color3.fromRGB(30, 31, 38), 1)
 
-		-- Header
+		-- Main Layout
+		local layout = Utilities.AddListLayout(notification, 8)
+		Utilities.AddPadding(notification, 0, 0, 4, 0) -- Bottom padding for the progress bar
+
+		-- Initial Position (Off-screen)
+		notification.AnchorPoint = Vector2.new(0, 0)
+		notification.Position = UDim2.new(1.2, 0, 0, 0)
+
+		-- HEADER SECTION
 		local header = Utilities.Create("Frame", {
 			Name = "Header",
-			Size = UDim2.new(1, 0, 0, 40),
-			BackgroundColor3 = Color3.fromRGB(16, 17, 21),
-			BorderSizePixel = 0,
-			AutomaticSize = Enum.AutomaticSize.XY,
+			Size = UDim2.new(1, 0, 0, 38),
+			BackgroundTransparency = 1,
 			Parent = notification
 		})
-		Utilities.AddCorner(header, 8)
-		Utilities.AddPadding(header, 4, 4, 0, 6)
-		Utilities.AddListLayout(header, 24, Enum.FillDirection.Horizontal)
+		Utilities.AddPadding(header, 0, 12, 0, 12)
 
-		-- Left Holder (Icon + Title)
-		local leftHolder = Utilities.Create("Frame", {
-			Name = "LeftHolder",
-			BackgroundTransparency = 1,
-			Size = UDim2.new(0, 0, 0, 30),
-			AutomaticSize = Enum.AutomaticSize.XY,
-			Parent = header
-		})
-		Utilities.AddListLayout(leftHolder, 4, Enum.FillDirection.Horizontal)
-
-		local iconHolder = Utilities.Create("Frame", {
-			Name = "IconHolder",
-			BackgroundTransparency = 1,
-			Size = UDim2.fromOffset(30, 30),
-			Parent = leftHolder
-		})
-		
+		-- Icon
 		local icon = Utilities.Create("ImageLabel", {
 			Name = "Icon",
 			Image = data.Icon,
 			ImageColor3 = data.Color,
-			BackgroundTransparency = 1,
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
 			Size = UDim2.fromOffset(20, 20),
-			Parent = iconHolder
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.fromScale(0, 0.5),
+			BackgroundTransparency = 1,
+			Parent = header
 		})
 
-		local titleLabel = Utilities.Create("TextLabel", {
+		-- Title
+		local titleText = Utilities.Create("TextLabel", {
 			Name = "Title",
 			Text = title,
 			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
 			TextColor3 = Color3.new(1, 1, 1),
 			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			Position = UDim2.fromOffset(28, 0),
+			Size = UDim2.new(1, -50, 1, 0),
+			BackgroundTransparency = 1,
 			RichText = true,
-			BackgroundTransparency = 1,
-			AutomaticSize = Enum.AutomaticSize.XY,
-			Parent = leftHolder
-		})
-		Utilities.AddPadding(titleLabel, 8, 0, 8, 0)
-
-		-- Control Holder (X Button)
-		local controlHolder = Utilities.Create("Frame", {
-			Name = "ControlHolder",
-			BackgroundTransparency = 1,
-			Size = UDim2.new(0, 0, 0, 30),
-			AutomaticSize = Enum.AutomaticSize.XY,
 			Parent = header
 		})
-		Utilities.AddListLayout(controlHolder, 2, Enum.FillDirection.Horizontal)
 
-		local closeButton = Utilities.Create("ImageButton", {
-			Name = "CloseButton",
-			Image = "",
-			BackgroundTransparency = 1,
-			Size = UDim2.fromOffset(30, 30),
-			Parent = controlHolder
-		})
-		local closeIcon = Utilities.Create("ImageLabel", {
-			Name = "CloseIcon",
+		-- Close Button
+		local closeBtn = Utilities.Create("ImageButton", {
+			Name = "Close",
 			Image = "rbxassetid://124971904960139",
-			ImageColor3 = Color3.fromRGB(66, 68, 86),
+			ImageColor3 = Color3.fromRGB(80, 82, 100),
+			Size = UDim2.fromOffset(16, 16),
+			AnchorPoint = Vector2.new(1, 0.5),
+			Position = UDim2.fromScale(1, 0.5),
 			BackgroundTransparency = 1,
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			Size = UDim2.fromOffset(18, 18),
-			Parent = closeButton
+			Parent = header
 		})
 
-		-- Description Holder
-		local descriptionHolder = Utilities.Create("Frame", {
-			Name = "DescriptionHolder",
+		-- CONTENT SECTION
+		local content = Utilities.Create("Frame", {
+			Name = "Content",
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
-			AutomaticSize = Enum.AutomaticSize.XY,
 			Parent = notification
 		})
-		Utilities.AddPadding(descriptionHolder, 0, 12, 12, 12)
-		Utilities.AddListLayout(descriptionHolder, 8)
+		Utilities.AddPadding(content, 0, 16, 12, 44) -- Left alignment offset to match icon
 
-		-- Message
-		local messageHolder = Utilities.Create("Frame", {
-			Name = "MessageHolder",
-			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, 0),
-			AutomaticSize = Enum.AutomaticSize.XY,
-			Parent = descriptionHolder
-		})
-		Utilities.AddPadding(messageHolder, 0, 0, 0, 26)
-		
-		local messageLabel = Utilities.Create("TextLabel", {
-			Name = "MessageText",
+		local msgLabel = Utilities.Create("TextLabel", {
+			Name = "Message",
 			Text = text,
 			FontFace = self.Theme.Font,
-			TextColor3 = Color3.fromRGB(66, 68, 86),
-			TextSize = 14,
-			RichText = true,
+			TextColor3 = Color3.fromRGB(140, 142, 160),
+			TextSize = 13,
+			TextWrapped = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			AutomaticSize = Enum.AutomaticSize.XY,
+			Size = UDim2.new(1, 0, 0, 0),
+			AutomaticSize = Enum.AutomaticSize.Y,
 			BackgroundTransparency = 1,
-			Parent = messageHolder
+			RichText = true,
+			Parent = content
 		})
 
-		-- Button Row
-		local buttonHolder = Utilities.Create("Frame", {
-			Name = "ButtonHolder",
+		-- BUTTON SECTION
+		local actions = Utilities.Create("Frame", {
+			Name = "Actions",
+			Size = UDim2.new(1, 0, 0, 32),
 			BackgroundTransparency = 1,
-			AutomaticSize = Enum.AutomaticSize.XY,
-			Parent = descriptionHolder
-		})
-		Utilities.AddPadding(buttonHolder, 0, 0, 0, 26)
-		Utilities.AddListLayout(buttonHolder, 8, Enum.FillDirection.Horizontal)
-
-		-- Continue Button
-		local continueButton = Utilities.Create("Frame", {
-			Name = "ContinueButton",
-			BackgroundColor3 = data.Color,
-			BackgroundTransparency = 0.95,
-			AutomaticSize = Enum.AutomaticSize.XY,
-			Parent = buttonHolder
-		})
-		Utilities.AddCorner(continueButton, 6)
-		
-		local continueLabel = Utilities.Create("TextLabel", {
-			Name = "Label",
-			Text = "Continue",
-			FontFace = self.Theme.Font,
-			TextColor3 = data.Color,
-			TextSize = 14,
-			BackgroundTransparency = 1,
-			AutomaticSize = Enum.AutomaticSize.XY,
-			Parent = continueButton
-		})
-		Utilities.AddPadding(continueLabel, 6, 8, 6, 8)
-		
-		local continueClick = Utilities.Create("TextButton", {
-			Name = "Click",
-			Text = "",
-			BackgroundTransparency = 1,
-			Size = UDim2.fromScale(1, 1),
-			Parent = continueButton
-		})
-
-		-- Progress Section
-		local progressHolder = Utilities.Create("Frame", {
-			Name = "ProgressHolder",
-			BackgroundColor3 = Color3.fromRGB(19, 20, 25),
-			BorderSizePixel = 0,
-			Size = UDim2.new(1, 0, 0, 25),
 			Parent = notification
 		})
-		Utilities.AddCorner(progressHolder, 8)
-		Utilities.AddPadding(progressHolder, 0, 12, 0, 0)
-		Utilities.AddListLayout(progressHolder, 0, Enum.FillDirection.Horizontal)
+		Utilities.AddPadding(actions, 0, 16, 12, 44)
 
-		local progressInner = Utilities.Create("Frame", {
-			Name = "Inner",
-			BackgroundTransparency = 1,
-			Size = UDim2.fromScale(1, 1),
-			Parent = progressHolder
+		local continueBtn = Utilities.Create("Frame", {
+			Name = "Continue",
+			BackgroundColor3 = data.Color,
+			BackgroundTransparency = 0.92,
+			Size = UDim2.fromOffset(80, 28),
+			Parent = actions
 		})
-		Utilities.AddListLayout(progressInner, 6)
-		Utilities.AddPadding(progressInner, 6, 12, 0, 0)
+		Utilities.AddCorner(continueBtn, 6)
+		local continueStroke = Utilities.AddStroke(continueBtn, data.Color, 1)
+		continueStroke.Transparency = 0.8
 
-		local barBackground = Utilities.Create("Frame", {
-			Name = "ProgressBar",
+		local continueLabel = Utilities.Create("TextLabel", {
+			Text = "Continue",
+			FontFace = self.Theme.FontMedium,
+			TextColor3 = data.Color,
+			TextSize = 13,
+			Size = UDim2.fromScale(1, 1),
 			BackgroundTransparency = 1,
-			Size = UDim2.new(1, 0, 0, 5),
-			Parent = progressInner
+			Parent = continueBtn
+		})
+
+		local continueClick = Utilities.Create("TextButton", {
+			Text = "",
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Parent = continueBtn
+		})
+
+		-- PROGRESS BAR (THIN BOTTOM)
+		local progressContainer = Utilities.Create("Frame", {
+			Name = "ProgressHolder",
+			Size = UDim2.new(1, 0, 0, 2),
+			BackgroundColor3 = Color3.fromRGB(24, 25, 32),
+			BorderSizePixel = 0,
+			Parent = notification
 		})
 		
-		local barFill = Utilities.Create("Frame", {
-			Name = "Fill",
+		local progressBar = Utilities.Create("Frame", {
+			Name = "Bar",
+			Size = UDim2.fromScale(1, 1),
 			BackgroundColor3 = data.Color,
 			BorderSizePixel = 0,
-			Size = UDim2.fromScale(1, 1),
-			Parent = barBackground
+			Parent = progressContainer
 		})
-		Utilities.AddCorner(barFill, 4)
 
-		-- Animations
+		-- ANIMATIONS
 		local function dismiss()
-			Utilities.Tween(notification, {Position = startPos}, 0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-			task.delay(0.5, function() wrapper:Destroy() end)
+			Utilities.Tween(notification, {Position = UDim2.new(1.2, 0, 0, 0)}, 0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+			task.delay(0.4, function() wrapper:Destroy() end)
 		end
 
-		closeButton.MouseButton1Click:Connect(dismiss)
+		closeBtn.MouseButton1Click:Connect(dismiss)
 		continueClick.MouseButton1Click:Connect(dismiss)
 
-		-- Entrance
-		Utilities.Tween(notification, {Position = endPos}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		-- Slide In
+		Utilities.Tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 		
-		-- Progress animation
-		local progressTween = Utilities.Tween(barFill, {Size = UDim2.fromScale(0, 1)}, duration, Enum.EasingStyle.Linear)
+		-- Life cycle
+		local progressTween = Utilities.Tween(progressBar, {Size = UDim2.fromScale(0, 1)}, duration, Enum.EasingStyle.Linear)
 		progressTween.Completed:Connect(function()
 			dismiss()
+		end)
+
+		-- Button Hover
+		continueClick.MouseEnter:Connect(function()
+			Utilities.Tween(continueBtn, {BackgroundTransparency = 0.85}, 0.2)
+		end)
+		continueClick.MouseLeave:Connect(function()
+			Utilities.Tween(continueBtn, {BackgroundTransparency = 0.92}, 0.2)
 		end)
 	end)
 end
