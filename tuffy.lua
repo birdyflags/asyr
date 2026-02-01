@@ -54,6 +54,13 @@ Centrixity.Theme = {
 	FontBold = Font.new("rbxassetid://12187365364", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
 }
 
+-- Library Configuration
+Centrixity.Notifications = {
+	Enabled = true,
+	Duration = 6,
+}
+Centrixity.ThreadFix = true
+
 -- Utility Functions
 local Utilities = {}
 
@@ -971,39 +978,22 @@ end
 -- ============================================
 -- NOTIFICATION SYSTEM
 -- ============================================
+-- NOTIFICATION SYSTEM (REFINED)
 -- ============================================
--- NOTIFICATION SYSTEM (EXPANDABLE TOAST)
--- ============================================
-function Centrixity:Notify(config)
-	config = config or {}
-	local notifType = config.Type or "Info" -- Info, Success, Error, Warning
-	local title = config.Title or "Notification"
-	local message = config.Message or "No message provided."
-	local duration = config.Duration or 12
+function Centrixity:Notify(title, text, duration, notifType)
+	if not self.Notifications.Enabled then return end
 	
-	local theme = self.Theme
+	-- Support for config table or positional arguments
+	if type(title) == "table" then
+		local config = title
+		title = config.Title or "Notification"
+		text = config.Message or config.Text or "No message provided."
+		duration = config.Duration or 6
+		notifType = config.Type or "Info"
+	end
 	
-	-- Notification Configuration
-	local typeData = {
-		Info = {
-			AccentColor = theme.Primary,
-			Icon = "rbxassetid://7733960981", -- Info
-		},
-		Success = {
-			AccentColor = theme.Success,
-			Icon = "rbxassetid://7733715400", -- Check
-		},
-		Error = {
-			AccentColor = theme.Error,
-			Icon = "rbxassetid://7733658504", -- X
-		},
-		Warning = {
-			AccentColor = theme.Warning,
-			Icon = "rbxassetid://7733964719", -- Warning
-		}
-	}
-	
-	local data = typeData[notifType] or typeData.Info
+	duration = duration or 6
+	notifType = notifType or "Info"
 	
 	-- Manager GUI setup
 	if not self._NotifGui then
@@ -1013,11 +1003,8 @@ function Centrixity:Notify(config)
 			ResetOnSpawn = false,
 		})
 		
-		local success = pcall(function()
-			self._NotifGui.Parent = game:GetService("CoreGui")
-		end)
-		
-		if not success then
+		pcall(function() self._NotifGui.Parent = game:GetService("CoreGui") end)
+		if not self._NotifGui.Parent then
 			self._NotifGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 		end
 		
@@ -1029,258 +1016,106 @@ function Centrixity:Notify(config)
 			BackgroundTransparency = 1,
 			Parent = self._NotifGui
 		})
-		
-		Utilities.AddListLayout(self._NotifHolder, 12, Enum.FillDirection.Vertical, Enum.HorizontalAlignment.Right)
+		Utilities.AddListLayout(self._NotifHolder, 10, Enum.FillDirection.Vertical, Enum.HorizontalAlignment.Right)
 		self._NotifHolder.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	end
-	
-	-- Wrapper for animations
-	local wrapper = Utilities.Create("Frame", {
-		Name = "Wrapper",
-		Size = UDim2.new(0, 310, 0, 0),
-		BackgroundTransparency = 1,
-		Parent = self._NotifHolder
-	})
-	
-	-- Main Notification Card (Black Design)
-	local card = Utilities.Create("Frame", {
-		Name = "Notification",
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		Position = UDim2.new(1.3, 0, 0, 0),
-		BackgroundColor3 = Color3.fromRGB(13, 13, 13), -- Deep Black
-		BorderSizePixel = 0,
-		ClipsDescendants = true,
-		Parent = wrapper
-	})
-	
-	Utilities.AddCorner(card, 16)
-	local mainStroke = Utilities.AddStroke(card, theme.Border, 1)
-	
-	-- Padding for internal elements
-	local mainPadding = Utilities.AddPadding(card, 0, 0, 0, 0)
-	
-	-- Content Body
-	local body = Utilities.Create("Frame", {
-		Name = "Body",
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		Parent = card
-	})
-	Utilities.AddPadding(body, 20, 20, 20, 20)
-	
-	-- Header Row (Icon + Title + Controls)
-	local header = Utilities.Create("Frame", {
-		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 24),
-		BackgroundTransparency = 1,
-		Parent = body
-	})
-	
-	local typeIcon = Utilities.Create("ImageLabel", {
-		Name = "TypeIcon",
-		Image = data.Icon,
-		ImageColor3 = data.AccentColor,
-		Size = UDim2.new(0, 24, 0, 24),
-		Position = UDim2.new(0, 0, 0, 0),
-		BackgroundTransparency = 1,
-		Parent = header
-	})
-	
-	local titleLabel = Utilities.Create("TextLabel", {
-		Name = "Title",
-		Text = title,
-		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Bold, Enum.FontStyle.Normal),
-		TextColor3 = theme.TextPrimary,
-		TextSize = 16,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		Position = UDim2.new(0, 34, 0, 0),
-		Size = UDim2.new(1, -100, 1, 0),
-		BackgroundTransparency = 1,
-		Parent = header
-	})
-	
-	local controls = Utilities.Create("Frame", {
-		Name = "Controls",
-		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, 0, 0.5, 0),
-		Size = UDim2.new(0, 50, 0, 24),
-		BackgroundTransparency = 1,
-		Parent = header
-	})
-	Utilities.AddListLayout(controls, 8, Enum.FillDirection.Horizontal, Enum.HorizontalAlignment.Right)
-	
-	local expandIcon = Utilities.Create("ImageLabel", {
-		Name = "Expand",
-		Image = "rbxassetid://10137941941", -- Chevron Up
-		ImageColor3 = theme.TextMuted,
-		Size = UDim2.new(0, 18, 0, 18),
-		BackgroundTransparency = 1,
-		Parent = controls
-	})
-	
-	local closeBtn = Utilities.Create("ImageButton", {
-		Name = "Close",
-		Image = "rbxassetid://10137941830", -- Close X
-		ImageColor3 = theme.TextMuted,
-		Size = UDim2.new(0, 18, 0, 18),
-		BackgroundTransparency = 1,
-		Parent = controls
-	})
-	
-	-- Description Area
-	local messageLabel = Utilities.Create("TextLabel", {
-		Name = "Message",
-		Text = message,
-		FontFace = theme.Font,
-		TextColor3 = theme.TextSecondary,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextYAlignment = Enum.TextYAlignment.Top,
-		TextWrapped = true,
-		Position = UDim2.new(0, 34, 0, 34),
-		Size = UDim2.new(1, -34, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
-		BackgroundTransparency = 1,
-		Parent = body
-	})
-	
-	-- Action Row
-	local actions = Utilities.Create("Frame", {
-		Name = "Actions",
-		Size = UDim2.new(1, 0, 0, 32),
-		Position = UDim2.new(0, 34, 0, 0), -- Placeholder offset
-		BackgroundTransparency = 1,
-		Parent = body
-	})
-	Utilities.AddListLayout(actions, 0, Enum.FillDirection.Vertical)
-	
-	local okayBtn = Utilities.Create("TextButton", {
-		Name = "ActionBtn",
-		Text = "Okay",
-		FontFace = theme.FontMedium,
-		TextColor3 = theme.TextPrimary,
-		TextSize = 14,
-		Size = UDim2.new(0, 70, 0, 32),
-		BackgroundColor3 = Color3.fromRGB(20, 20, 20),
-		AutoButtonColor = false,
-		Parent = actions
-	})
-	Utilities.AddCorner(okayBtn, 8)
-	Utilities.AddStroke(okayBtn, theme.Border, 1)
-	
-	-- Status Footer (countdown timer)
-	local footer = Utilities.Create("Frame", {
-		Name = "Footer",
-		Size = UDim2.new(1, 0, 0, 38),
-		BackgroundColor3 = Color3.fromRGB(20, 20, 20), -- Slightly lighter black
-		BorderSizePixel = 0,
-		Parent = card
-	})
-	
-	local footerLabel = Utilities.Create("TextLabel", {
-		Name = "Status",
-		Text = "This message will close in <font color=\"#ffffff\"><b>" .. duration .. "</b></font> seconds. <font color=\"#ffffff\"><b>Click to stop.</b></font>",
-		RichText = true,
-		FontFace = theme.Font,
-		TextColor3 = theme.TextSecondary,
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Center,
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		Parent = footer
-	})
-	
-	local footerClick = Utilities.Create("TextButton", {
-		Name = "StopTrigger",
-		Text = "",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		ZIndex = 5,
-		Parent = footer
-	})
-	
-	-- Progress Bar (at the absolute bottom)
-	local progressContainer = Utilities.Create("Frame", {
-		Name = "Progress",
-		AnchorPoint = Vector2.new(0, 1),
-		Position = UDim2.new(0, 0, 1, 0),
-		Size = UDim2.new(1, 0, 0, 3),
-		BackgroundColor3 = theme.BackgroundDark,
-		BorderSizePixel = 0,
-		Parent = card
-	})
-	
-	local progressFill = Utilities.Create("Frame", {
-		Name = "Fill",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundColor3 = data.AccentColor,
-		BorderSizePixel = 0,
-		Parent = progressContainer
-	})
-	
-	-- Logic Variables
-	local isDismissed = false
-	local isStopped = false
-	local progressTween
-	local remainingTime = duration
-	
-	-- Functions
-	local function doDismiss()
-		if isDismissed then return end
-		isDismissed = true
-		if progressTween then progressTween:Cancel() end
+
+	task.delay(0, function()
+		if self.ThreadFix then
+			pcall(function() setthreadidentity(8) end)
+		end
+
+		local notification = Instance.new('ImageLabel')
+		notification.Name = 'Notification'
 		
-		Utilities.Tween(card, {Position = UDim2.new(1.4, 0, 0, 0)}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-		task.delay(0.4, function()
-			Utilities.Tween(wrapper, {Size = UDim2.new(0, 310, 0, 0)}, 0.3)
-			task.delay(0.3, function() wrapper:Destroy() end)
-		end)
-	end
-	
-	-- Button Events
-	closeBtn.MouseButton1Click:Connect(doDismiss)
-	okayBtn.MouseButton1Click:Connect(doDismiss)
-	
-	footerClick.MouseButton1Click:Connect(function()
-		if isStopped then return end
-		isStopped = true
-		if progressTween then progressTween:Cancel() end
-		footerLabel.Text = "Self-destruct cancelled."
-		Utilities.Tween(progressFill, {BackgroundTransparency = 1}, 0.3)
-	end)
-	
-	-- Animation Logic
-	task.spawn(function()
-		task.wait(0.05)
-		local targetHeight = card.AbsoluteSize.Y
-		
-		Utilities.Tween(wrapper, {Size = UDim2.new(0, 310, 0, targetHeight)}, 0.4, Enum.EasingStyle.Quart)
-		task.wait(0.1)
-		Utilities.Tween(card, {Position = UDim2.new(0, 0, 0, 0)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-		
-		-- Countdown Logic
-		task.spawn(function()
-			while remainingTime > 0 and not isDismissed and not isStopped do
-				task.wait(1)
-				remainingTime = remainingTime - 1
-				footerLabel.Text = "This message will close in <font color=\"#ffffff\"><b>" .. remainingTime .. "</b></font> seconds. <font color=\"#ffffff\"><b>Click to stop.</b></font>"
-			end
+		-- Width calculation logic (Safe side)
+		local cleanText = tostring(text):gsub("<[^>]+>", "")
+		local width = 266
+		pcall(function()
+			-- Assume getfontsize is available in environment
+			width = math.max(getfontsize(cleanText, 14, self.Theme.Font).X + 80, 266)
 		end)
 		
-		progressTween = Utilities.Tween(progressFill, {Size = UDim2.new(0, 0, 1, 0)}, duration, Enum.EasingStyle.Linear)
-		progressTween.Completed:Connect(function()
-			if not isDismissed and not isStopped then doDismiss() end
+		notification.Size = UDim2.fromOffset(width, 75)
+		notification.ZIndex = 5
+		notification.BackgroundTransparency = 1
+		pcall(function()
+			-- Assume getcustomasset is available in environment
+			notification.Image = getcustomasset('newvape/assets/new/notification.png')
 		end)
-	end)
-	
-	-- Hover visual for Okay button
-	okayBtn.MouseEnter:Connect(function()
-		Utilities.Tween(okayBtn, {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}, 0.2)
-	end)
-	okayBtn.MouseLeave:Connect(function()
-		Utilities.Tween(okayBtn, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.2)
+		notification.ScaleType = Enum.ScaleType.Slice
+		notification.SliceCenter = Rect.new(7, 7, 9, 9)
+		notification.Parent = self._NotifHolder
+		
+		pcall(function() 
+			-- Assume addBlur is available in environment
+			addBlur(notification, true)
+		end)
+
+		-- Icon (Simplified, no shadow)
+		local icon = Instance.new('ImageLabel')
+		icon.Name = 'Icon'
+		icon.Size = UDim2.fromOffset(60, 60)
+		icon.Position = UDim2.fromOffset(-5, -8)
+		icon.ZIndex = 6
+		icon.BackgroundTransparency = 1
+		pcall(function()
+			icon.Image = getcustomasset('newvape/assets/new/'..string.lower(notifType)..'.png')
+		end)
+		icon.ImageColor3 = Color3.new(1, 1, 1)
+		icon.Parent = notification
+
+		-- Title
+		local titlelabel = Instance.new('TextLabel')
+		titlelabel.Name = 'Title'
+		titlelabel.Size = UDim2.new(1, -56, 0, 20)
+		titlelabel.Position = UDim2.fromOffset(46, 16)
+		titlelabel.ZIndex = 7
+		titlelabel.BackgroundTransparency = 1
+		titlelabel.Text = title
+		titlelabel.TextXAlignment = Enum.TextXAlignment.Left
+		titlelabel.TextYAlignment = Enum.TextYAlignment.Top
+		titlelabel.TextColor3 = Color3.fromRGB(240, 240, 240)
+		titlelabel.TextSize = 14
+		titlelabel.RichText = true
+		titlelabel.FontFace = self.Theme.FontSemiBold
+		titlelabel.Parent = notification
+		
+		-- Text
+		local textlabel = titlelabel:Clone()
+		textlabel.Name = 'Text'
+		textlabel.Position = UDim2.fromOffset(46, 40)
+		textlabel.Text = text
+		textlabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+		textlabel.FontFace = self.Theme.Font
+		textlabel.Parent = notification
+
+		-- Progress Bar
+		local progress = Instance.new('Frame')
+		progress.Name = 'Progress'
+		progress.Size = UDim2.new(1, -13, 0, 2)
+		progress.Position = UDim2.new(0, 3, 1, -4)
+		progress.ZIndex = 8
+		progress.BackgroundColor3 =
+			(notifType:lower() == 'alert' or notifType:lower() == 'error') and Color3.fromRGB(250, 50, 56)
+			or notifType:lower() == 'warning' and Color3.fromRGB(236, 129, 43)
+			or self.Theme.Primary
+		progress.BorderSizePixel = 0
+		progress.Parent = notification
+
+		-- Animations
+		notification.AnchorPoint = Vector2.new(0, 0)
+		Utilities.Tween(notification, {AnchorPoint = Vector2.new(1, 0)}, 0.4, Enum.EasingStyle.Exponential)
+		Utilities.Tween(progress, {Size = UDim2.fromOffset(0, 2)}, duration, Enum.EasingStyle.Linear)
+
+		task.delay(duration, function()
+			local outTween = Utilities.Tween(notification, {AnchorPoint = Vector2.new(0, 0)}, 0.4, Enum.EasingStyle.Exponential)
+			outTween.Completed:Connect(function()
+				if notification.Parent then
+					notification:Destroy()
+				end
+			end)
+		end)
 	end)
 end
 
