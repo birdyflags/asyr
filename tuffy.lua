@@ -896,18 +896,19 @@ function SubPage:AddToggle(config)
 	
 	-- Toggle Function
 	function toggle:Set(value, skipCallback)
+		if self.Value == value and not skipCallback then return end -- Don't fire if already in this state
 		self.Value = value
 		
 		-- Animate checkbox
 		if value then
 			self.Gradient.Enabled = true
-			Utilities.Tween(self.Checkbox, {BackgroundColor3 = theme.Primary}, 0.2)
-			Utilities.Tween(self.CheckboxStroke, {Color = theme.Primary}, 0.2)
+			Utilities.Tween(self.Checkbox, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0}, 0.2)
+			Utilities.Tween(self.CheckboxStroke, {Color = theme.Primary, Transparency = 0}, 0.2)
 			Utilities.Tween(self.Checkmark, {ImageTransparency = 0}, 0.2)
 			Utilities.Tween(self.Label, {TextColor3 = theme.TextPrimary}, 0.2)
 		else
-			Utilities.Tween(self.Checkbox, {BackgroundColor3 = theme.BackgroundLight}, 0.2)
-			Utilities.Tween(self.CheckboxStroke, {Color = theme.Border}, 0.2)
+			Utilities.Tween(self.Checkbox, {BackgroundColor3 = theme.BackgroundLight, BackgroundTransparency = 0}, 0.2)
+			Utilities.Tween(self.CheckboxStroke, {Color = theme.Border, Transparency = 0}, 0.2)
 			Utilities.Tween(self.Checkmark, {ImageTransparency = 1}, 0.2)
 			Utilities.Tween(self.Label, {TextColor3 = theme.TextMuted}, 0.2)
 			task.delay(0.2, function()
@@ -917,21 +918,22 @@ function SubPage:AddToggle(config)
 			end)
 		end
 		
-		-- Execute callback with error handling
+		-- Execute callback
 		if not skipCallback then
-			local success, err = pcall(function()
-				self.Callback(value)
+			task.spawn(function()
+				local success, err = pcall(function()
+					self.Callback(value)
+				end)
+				
+				if not success then
+					Centrixity:Notify({
+						Type = "Error",
+						Title = "Toggle Callback Error",
+						Message = tostring(err),
+						Duration = 6
+					})
+				end
 			end)
-			
-			if not success then
-				-- Show error notification
-				Centrixity:Notify({
-					Type = "Error",
-					Title = "Error Caught",
-					Message = tostring(err),
-					Duration = 6
-				})
-			end
 		end
 	end
 	
@@ -963,8 +965,113 @@ function SubPage:AddSlider(config)
 end
 
 function SubPage:AddButton(config)
-	-- TODO: Implement button
-	return {}
+	config = config or {}
+	local theme = Centrixity.Theme
+	
+	local button = {
+		Name = config.Name or "Button",
+		Callback = config.Callback or function() end,
+	}
+	
+	-- Button Frame
+	button.Frame = Utilities.Create("Frame", {
+		Name = "Button_" .. button.Name,
+		Size = UDim2.new(1, 0, 0, 34),
+		BackgroundColor3 = theme.BackgroundLight,
+		BackgroundTransparency = 0,
+		LayoutOrder = #self.Components + 1,
+		Parent = self.ComponentHolder
+	})
+	Utilities.AddCorner(button.Frame, 6)
+	button.Stroke = Utilities.AddStroke(button.Frame, theme.Border, 1)
+	
+	-- Highlight/Fill for hover
+	button.Highlight = Utilities.Create("Frame", {
+		Name = "Highlight",
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundColor3 = theme.Primary,
+		BackgroundTransparency = 1,
+		Parent = button.Frame
+	})
+	Utilities.AddCorner(button.Highlight, 6)
+	
+	-- Label
+	button.Label = Utilities.Create("TextLabel", {
+		Name = "Label",
+		Text = button.Name,
+		FontFace = theme.FontMedium,
+		TextColor3 = theme.TextPrimary,
+		TextSize = 13,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Parent = button.Frame
+	})
+	
+	-- Icon (Optional)
+	if config.Icon then
+		button.Label.Position = UDim2.new(0, 30, 0, 0)
+		button.Label.Size = UDim2.new(1, -30, 1, 0)
+		button.Label.TextXAlignment = Enum.TextXAlignment.Left
+		
+		button.Icon = Utilities.Create("ImageLabel", {
+			Name = "Icon",
+			Image = config.Icon,
+			Size = UDim2.fromOffset(18, 18),
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.new(0, 8, 0.5, 0),
+			BackgroundTransparency = 1,
+			ImageColor3 = theme.TextPrimary,
+			Parent = button.Frame
+		})
+	end
+	
+	-- Click Handler
+	button.Trigger = Utilities.Create("TextButton", {
+		Name = "Trigger",
+		Text = "",
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Parent = button.Frame
+	})
+	
+	-- Events
+	button.Trigger.MouseEnter:Connect(function()
+		Utilities.Tween(button.Frame, {BackgroundColor3 = theme.BackgroundLight:Lerp(Color3.new(1,1,1), 0.05)}, 0.2)
+		Utilities.Tween(button.Stroke, {Color = theme.Primary, Transparency = 0.5}, 0.2)
+		Utilities.Tween(button.Highlight, {BackgroundTransparency = 0.95}, 0.2)
+	end)
+	
+	button.Trigger.MouseLeave:Connect(function()
+		Utilities.Tween(button.Frame, {BackgroundColor3 = theme.BackgroundLight}, 0.2)
+		Utilities.Tween(button.Stroke, {Color = theme.Border, Transparency = 0}, 0.2)
+		Utilities.Tween(button.Highlight, {BackgroundTransparency = 1}, 0.2)
+	end)
+	
+	button.Trigger.MouseButton1Down:Connect(function()
+		Utilities.Tween(button.Highlight, {BackgroundTransparency = 0.85}, 0.1)
+		Utilities.Tween(button.Frame, {Size = UDim2.new(1, -4, 0, 32), Position = UDim2.new(0, 2, 0, 1)}, 0.1)
+	end)
+	
+	button.Trigger.MouseButton1Up:Connect(function()
+		Utilities.Tween(button.Highlight, {BackgroundTransparency = 0.95}, 0.1)
+		Utilities.Tween(button.Frame, {Size = UDim2.new(1, 0, 0, 34), Position = UDim2.new(0, 0, 0, 0)}, 0.1)
+		
+		-- Callback
+		task.spawn(function()
+			local success, err = pcall(button.Callback)
+			if not success then
+				Centrixity:Notify({
+					Type = "Error",
+					Title = "Button Callback Error",
+					Message = tostring(err),
+					Duration = 6
+				})
+			end
+		end)
+	end)
+	
+	table.insert(self.Components, button)
+	return button
 end
 
 function SubPage:AddDropdown(config)
@@ -1073,7 +1180,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			ClipsDescendants = true,
 			Parent = wrapper
 		})
-		Utilities.AddCorner(notification, 10)
+		Utilities.AddCorner(notification, 8) -- Reduced to 8 as requested
 		Utilities.AddStroke(notification, Color3.fromRGB(30, 31, 38), 1)
 
 		-- Main Layout (Scroll/List for content only)
@@ -1201,11 +1308,12 @@ function Centrixity:Notify(title, text, duration, notifType)
 			Parent = continueBtn
 		})
 
-		-- PROGRESS BAR (STRICTLY AT THE BOTTOM EDGE)
+		-- PROGRESS BAR (STRICTLY AT THE BOTTOM EDGE - CLIPPED)
 		local progressContainer = Utilities.Create("Frame", {
 			Name = "ProgressHolder",
-			Size = UDim2.new(1, 0, 0, 2),
-			Position = UDim2.new(0, 0, 1, -2), -- Stick to the bottom edge
+			Size = UDim2.new(1, -12, 0, 2), -- Width reduced slightly to stay within corners
+			AnchorPoint = Vector2.new(0.5, 1),
+			Position = UDim2.new(0.5, 0, 1, -2), -- Stick to the bottom edge with center alignment
 			BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 			BorderSizePixel = 0,
 			Parent = notification
@@ -1218,6 +1326,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 			BorderSizePixel = 0,
 			Parent = progressContainer
 		})
+		Utilities.AddCorner(progressBar, 4)
 		Utilities.AddCorner(progressBar, 4) -- Round the progress fill ends too
 
 		-- ANIMATIONS
