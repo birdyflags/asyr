@@ -1205,62 +1205,64 @@ function SubPage:AddDropdown(config)
 		OptionFrames = {},
 	}
 	
-	-- Main Container
+	-- Main Button Container
 	dropdown.Frame = Utilities.Create("Frame", {
 		Name = "Dropdown_" .. dropdown.Name,
-		Size = UDim2.new(1, 0, 0, 36),
+		Size = UDim2.new(1, 0, 0, 34),
 		BackgroundColor3 = theme.BackgroundDark,
 		BorderSizePixel = 0,
 		LayoutOrder = #self.Components + 1,
 		Parent = self.ComponentHolder
 	})
-	Utilities.AddCorner(dropdown.Frame, 8)
+	Utilities.AddCorner(dropdown.Frame, 6)
 	dropdown.Stroke = Utilities.AddStroke(dropdown.Frame, theme.Border, 1)
 	
-	-- Header Area
-	dropdown.Header = Utilities.Create("TextButton", {
-		Name = "Header",
-		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundTransparency = 1,
-		Text = "",
-		Parent = dropdown.Frame
-	})
-	
+	-- Dropdown Label
 	dropdown.Label = Utilities.Create("TextLabel", {
 		Text = dropdown.Name,
 		FontFace = theme.Font,
 		TextColor3 = theme.TextPrimary,
 		TextSize = 13,
-		Position = UDim2.new(0, 12, 0, 0),
+		Position = UDim2.new(0, 10, 0, 0),
 		Size = UDim2.new(0.5, 0, 1, 0),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		BackgroundTransparency = 1,
-		Parent = dropdown.Header
+		Parent = dropdown.Frame
 	})
 	
+	-- Current Value Label
 	dropdown.ValueLabel = Utilities.Create("TextLabel", {
 		Text = "None",
 		FontFace = theme.Font,
 		TextColor3 = theme.TextMuted,
 		TextSize = 12,
 		Position = UDim2.new(0.5, 0, 0, 0),
-		Size = UDim2.new(0.5, -35, 1, 0),
+		Size = UDim2.new(0.5, -30, 1, 0),
 		TextXAlignment = Enum.TextXAlignment.Right,
 		BackgroundTransparency = 1,
-		Parent = dropdown.Header
+		Parent = dropdown.Frame
 	})
 	
+	-- Arrow Icon
 	dropdown.Icon = Utilities.Create("ImageLabel", {
-		Image = "rbxassetid://124971904960139", -- Down arrow
+		Image = "rbxassetid://130510528659103", -- Modern Chevron
 		ImageColor3 = theme.TextMuted,
-		Size = UDim2.fromOffset(16, 16),
+		Size = UDim2.fromOffset(14, 14),
 		AnchorPoint = Vector2.new(1, 0.5),
-		Position = UDim2.new(1, -12, 0.5, 0),
+		Position = UDim2.new(1, -10, 0.5, 0),
 		BackgroundTransparency = 1,
-		Parent = dropdown.Header
+		Parent = dropdown.Frame
 	})
 	
-	-- List Area (Global Overlay for perfect layering)
+	-- Trigger Button
+	dropdown.Trigger = Utilities.Create("TextButton", {
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Text = "",
+		Parent = dropdown.Frame
+	})
+	
+	-- List Overlay (Global Layer for absolute positioning)
 	if not window._DropdownLayer then
 		window._DropdownLayer = Utilities.Create("Frame", {
 			Name = "DropdownOverlay",
@@ -1271,51 +1273,65 @@ function SubPage:AddDropdown(config)
 		})
 	end
 
-	dropdown.List = Utilities.Create("ScrollingFrame", {
+	dropdown.List = Utilities.Create("Frame", {
 		Name = "List_" .. dropdown.Name,
 		Size = UDim2.new(0, 0, 0, 0),
-		BackgroundColor3 = theme.BackgroundLight,
+		BackgroundColor3 = Color3.fromRGB(20, 21, 26),
 		BorderSizePixel = 0,
-		ScrollBarThickness = 2,
-		ScrollBarImageColor3 = theme.Primary,
 		ClipsDescendants = true,
 		Visible = false,
 		ZIndex = 110,
 		Parent = window._DropdownLayer
 	})
-	Utilities.AddCorner(dropdown.List, 8)
-	dropdown.ListStroke = Utilities.AddStroke(dropdown.List, theme.Border, 1)
-	local listLayout = Utilities.AddListLayout(dropdown.List, 4)
-	Utilities.AddPadding(dropdown.List, 6, 6, 6, 6)
+	Utilities.AddCorner(dropdown.List, 6)
+	Utilities.AddStroke(dropdown.List, theme.Border, 1)
 	
-	-- Modern Search Bar
-	local searchContainer = Utilities.Create("Frame", {
-		Size = UDim2.new(1, 0, 0, 30),
-		BackgroundColor3 = theme.Background,
+	-- Search Container
+	dropdown.SearchFrame = Utilities.Create("Frame", {
+		Name = "SearchField",
+		Size = UDim2.new(1, -12, 0, 28),
+		Position = UDim2.new(0, 6, 0, 6),
+		BackgroundColor3 = Color3.fromRGB(25, 26, 31),
+		BorderSizePixel = 0,
 		Parent = dropdown.List
 	})
-	Utilities.AddCorner(searchContainer, 6)
-	Utilities.AddStroke(searchContainer, theme.Border, 1)
+	Utilities.AddCorner(dropdown.SearchFrame, 4)
+	Utilities.AddStroke(dropdown.SearchFrame, theme.Border, 1)
 	
 	dropdown.Search = Utilities.Create("TextBox", {
-		Name = "Search",
-		PlaceholderText = "Search options...",
+		PlaceholderText = "Search...",
 		PlaceholderColor3 = theme.TextMuted,
 		Text = "",
 		FontFace = theme.Font,
 		TextSize = 12,
 		TextColor3 = theme.TextPrimary,
-		Size = UDim2.new(1, 0, 1, 0),
+		Size = UDim2.new(1, -20, 1, 0),
+		Position = UDim2.new(0, 10, 0, 0),
 		BackgroundTransparency = 1,
-		Parent = searchContainer
+		TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = dropdown.SearchFrame
 	})
-	Utilities.AddPadding(dropdown.Search, 0, 10, 0, 10)
+	
+	-- Scrolling Area
+	dropdown.Scroll = Utilities.Create("ScrollingFrame", {
+		Name = "Scroll",
+		Size = UDim2.new(1, 0, 1, -40),
+		Position = UDim2.new(0, 0, 0, 40),
+		BackgroundTransparency = 1,
+		ScrollBarThickness = 2,
+		ScrollBarImageColor3 = theme.Primary,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		Parent = dropdown.List
+	})
+	local listLayout = Utilities.AddListLayout(dropdown.Scroll, 4)
+	Utilities.AddPadding(dropdown.Scroll, 6, 6, 6, 6)
 	
 	local function updateValueLabel()
 		if dropdown.Multi then
 			local count = 0
 			for _, v in pairs(dropdown.Selected) do if v then count = count + 1 end end
-			dropdown.ValueLabel.Text = count > 0 and (count .. " selected") or "None"
+			dropdown.ValueLabel.Text = count > 0 and (count .. " Selected") or "None"
 			dropdown.ValueLabel.TextColor3 = count > 0 and theme.Primary or theme.TextMuted
 		else
 			dropdown.ValueLabel.Text = (tostring(dropdown.Selected) ~= "") and tostring(dropdown.Selected) or "None"
@@ -1327,10 +1343,10 @@ function SubPage:AddDropdown(config)
 		local option = {}
 		option.Frame = Utilities.Create("TextButton", {
 			Text = "",
-			Size = UDim2.new(1, 0, 0, 30),
+			Size = UDim2.new(1, 0, 0, 28),
 			BackgroundColor3 = theme.Background,
 			BackgroundTransparency = 1,
-			Parent = dropdown.List
+			Parent = dropdown.Scroll
 		})
 		Utilities.AddCorner(option.Frame, 4)
 		
@@ -1347,9 +1363,9 @@ function SubPage:AddDropdown(config)
 		})
 		
 		option.Check = Utilities.Create("ImageLabel", {
-			Image = "rbxassetid://7733715400",
+			Image = "rbxassetid://130510503527263", -- Check icon
 			ImageColor3 = theme.Primary,
-			Size = UDim2.fromOffset(14, 14),
+			Size = UDim2.fromOffset(12, 12),
 			AnchorPoint = Vector2.new(1, 0.5),
 			Position = UDim2.new(1, -8, 0.5, 0),
 			BackgroundTransparency = 1,
@@ -1394,15 +1410,14 @@ function SubPage:AddDropdown(config)
 			dropdown.List.Visible = true
 			local function updatePos()
 				local absPos = dropdown.Frame.AbsolutePosition
-				dropdown.List.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 40)
+				dropdown.List.Position = UDim2.new(0, absPos.X, 0, absPos.Y + 38)
 				dropdown.List.Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, dropdown.List.Size.Y.Offset)
 			end
 			updatePos()
 			positionLoop = RunService.RenderStepped:Connect(updatePos)
 			
-			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 180)}, 0.4, Enum.EasingStyle.Quart)
+			Utilities.Tween(dropdown.List, {Size = UDim2.new(0, dropdown.Frame.AbsoluteSize.X, 0, 160)}, 0.4, Enum.EasingStyle.Quart)
 			Utilities.Tween(dropdown.Icon, {Rotation = 180, ImageColor3 = theme.Primary}, 0.3)
-			Utilities.Tween(dropdown.Frame, {BackgroundColor3 = theme.Background}, 0.3)
 		else
 			if window._ActiveDropdown == self then window._ActiveDropdown = nil end
 			if positionLoop then positionLoop:Disconnect() positionLoop = nil end
@@ -1411,11 +1426,10 @@ function SubPage:AddDropdown(config)
 				if not self.Open then dropdown.List.Visible = false end
 			end)
 			Utilities.Tween(dropdown.Icon, {Rotation = 0, ImageColor3 = theme.TextMuted}, 0.3)
-			Utilities.Tween(dropdown.Frame, {BackgroundColor3 = theme.BackgroundDark}, 0.3)
 		end
 	end
 	
-	dropdown.Header.MouseButton1Click:Connect(function() dropdown:Toggle() end)
+	dropdown.Trigger.MouseButton1Click:Connect(function() dropdown:Toggle() end)
 	
 	dropdown.Search:GetPropertyChangedSignal("Text"):Connect(function()
 		local q = dropdown.Search.Text:lower()
@@ -1476,7 +1490,7 @@ function Centrixity:Notify(title, text, duration, notifType)
 	-- Manager GUI
 	if not self._NotifGui then
 		self._NotifGui = Utilities.Create("ScreenGui", {
-			Name = "CentrixityNotifications",
+			Name = "Notifcations",
 			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 			ResetOnSpawn = false,
 		})
@@ -1489,151 +1503,244 @@ function Centrixity:Notify(title, text, duration, notifType)
 		self._NotifHolder = Utilities.Create("Frame", {
 			Name = "NotificationHolder",
 			AnchorPoint = Vector2.new(1, 1),
-			Position = UDim2.new(1, -20, 1, -20),
-			Size = UDim2.new(0, 320, 0, 0), -- Fixed width for holder
+			Position = UDim2.new(1, 0, 1, 0),
+			Size = UDim2.new(0, 1, 0, 1),
 			BackgroundTransparency = 1,
-			AutomaticSize = Enum.AutomaticSize.Y,
+			AutomaticSize = Enum.AutomaticSize.XY,
 			Parent = self._NotifGui
 		})
 		
 		Utilities.AddListLayout(self._NotifHolder, 12, Enum.FillDirection.Vertical, Enum.HorizontalAlignment.Right)
 		self._NotifHolder.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+		Utilities.AddPadding(self._NotifHolder, 12, 12, 12, 12)
 	end
 
-	-- Notification Frame
+	-- Notification Main Frame
 	local notification = Utilities.Create("Frame", {
 		Name = "Notification",
 		ClipsDescendants = true,
-		Size = UDim2.new(1, 0, 0, 0), -- Width inherits from holder (320px)
-		AutomaticSize = Enum.AutomaticSize.Y,
+		Size = UDim2.new(0, 1, 0, 30),
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundColor3 = Color3.fromRGB(16, 17, 21),
 		BorderSizePixel = 0,
 		Parent = self._NotifHolder
 	})
-	Utilities.AddCorner(notification, 10)
-	Utilities.AddStroke(notification, Color3.fromRGB(30, 31, 38), 1)
+	Utilities.AddCorner(notification, 8)
 	Utilities.AddListLayout(notification, 0)
 	
-	-- Position for animation
+	-- Position for entry animation
 	notification.Position = UDim2.new(1.5, 0, 0, 0)
 
 	-- 1. Header Section
 	local header = Utilities.Create("Frame", {
 		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 38),
+		Size = UDim2.new(0, 1, 0, 30),
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundColor3 = Color3.fromRGB(16, 17, 21),
 		BorderSizePixel = 0,
 		Parent = notification
 	})
-	Utilities.AddPadding(header, 0, 12, 0, 12)
-	
-	local headerLayout = Utilities.AddListLayout(header, 12, Enum.FillDirection.Horizontal)
-	headerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	Utilities.AddCorner(header, 8)
+	Utilities.AddPadding(header, 4, 4, 4, 6)
+	Utilities.AddListLayout(header, 24, Enum.FillDirection.Horizontal).VerticalAlignment = Enum.VerticalAlignment.Center
 
-	Utilities.Create("ImageLabel", {
-		Name = "Icon",
-		Image = data.Icon,
-		ImageColor3 = data.Color,
-		Size = UDim2.fromOffset(22, 22),
+	-- Left Side: Icon & Title
+	local holder = Utilities.Create("Frame", {
+		Name = "Holder",
+		Size = UDim2.new(0, 64, 0, 30),
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
 		Parent = header
 	})
+	Utilities.AddListLayout(holder, 2, Enum.FillDirection.Horizontal)
 
+	local iconHolder = Utilities.Create("Frame", {
+		Name = "IconHolder",
+		Size = UDim2.fromOffset(30, 30),
+		BackgroundTransparency = 1,
+		Parent = holder
+	})
+	Utilities.Create("ImageLabel", {
+		Image = data.Icon,
+		ImageColor3 = data.Color,
+		Size = UDim2.fromOffset(20, 20),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		BackgroundTransparency = 1,
+		Parent = iconHolder
+	})
+
+	local titleHolder = Utilities.Create("Frame", {
+		Name = "TitleHolder",
+		Size = UDim2.new(0, 1, 0, 30),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Parent = holder
+	})
+	Utilities.AddListLayout(titleHolder, 0, Enum.FillDirection.Horizontal).VerticalAlignment = Enum.VerticalAlignment.Center
 	Utilities.Create("TextLabel", {
 		Name = "Title",
 		Text = title,
-		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold),
+		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular),
 		TextColor3 = Color3.new(1, 1, 1),
 		TextSize = 14,
-		Size = UDim2.new(1, -65, 1, 0),
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Left,
 		RichText = true,
-		Parent = header
+		Parent = titleHolder
 	})
 
-	local closeBtn = Utilities.Create("TextButton", {
-		Name = "Close",
-		Text = "×",
-		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Bold),
-		TextColor3 = Color3.fromRGB(80, 82, 100),
-		TextSize = 22,
-		Size = UDim2.fromOffset(25, 25),
+	-- Right Side: Control Buttons
+	local controlHolder = Utilities.Create("Frame", {
+		Name = "ControlHolder",
+		Size = UDim2.new(0, 1, 0, 30),
+		AutomaticSize = Enum.AutomaticSize.XY,
 		BackgroundTransparency = 1,
 		Parent = header
 	})
+	Utilities.AddListLayout(controlHolder, 2, Enum.FillDirection.Horizontal)
 
-	-- 2. Message Body
-	local body = Utilities.Create("Frame", {
-		Name = "Body",
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
+	Utilities.Create("Frame", { -- Collapse placeholder
+		Name = "CallopseButton",
+		Size = UDim2.fromOffset(30, 30),
 		BackgroundTransparency = 1,
-		Parent = notification
+		Parent = controlHolder
 	})
-	Utilities.AddPadding(body, 5, 15, 15, 46) -- Spaced to align with title
 
-	local bodyLayout = Utilities.AddListLayout(body, 12)
-
-	local msgLabel = Utilities.Create("TextLabel", {
-		Name = "Message",
-		Text = text,
-		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular),
-		TextColor3 = Color3.fromRGB(140, 142, 160),
-		TextSize = 13,
-		Size = UDim2.new(1, 0, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
+	local closeButton = Utilities.Create("Frame", {
+		Name = "CloseButton",
+		Size = UDim2.fromOffset(30, 30),
 		BackgroundTransparency = 1,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextWrapped = true,
-		RichText = true,
-		Parent = body
+		Parent = controlHolder
 	})
-
-	-- 3. Actions (Continue Button)
-	local continueBtn = Utilities.Create("Frame", {
-		Name = "Continue",
-		BackgroundColor3 = data.Color,
-		BackgroundTransparency = 0.94,
-		Size = UDim2.new(0, 85, 0, 30),
-		Parent = body
-	})
-	Utilities.AddCorner(continueBtn, 6)
-	Utilities.AddStroke(continueBtn, data.Color, 1).Transparency = 0.8
-
-	local continueLabel = Utilities.Create("TextLabel", {
-		Text = "Continue",
-		FontFace = theme.FontMedium,
-		TextColor3 = data.Color,
-		TextSize = 13,
-		Size = UDim2.fromScale(1, 1),
+	Utilities.Create("ImageLabel", {
+		Name = "CloseIcon",
+		Image = "rbxassetid://124971904960139",
+		ImageColor3 = Color3.fromRGB(66, 68, 86),
+		Size = UDim2.fromOffset(18, 18),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
 		BackgroundTransparency = 1,
-		Parent = continueBtn
+		Parent = closeButton
 	})
-
-	local continueClick = Utilities.Create("TextButton", {
-		Size = UDim2.fromScale(1, 1),
+	local closeTrigger = Utilities.Create("TextButton", {
+		Size = UDim2.fromScale(1,1),
 		BackgroundTransparency = 1,
 		Text = "",
-		Parent = continueBtn
+		Parent = closeButton
 	})
 
-	-- 4. Progress Bar
+	-- 2. Description Content
+	local descriptionHolder = Utilities.Create("Frame", {
+		Name = "DescriptionHolder",
+		Size = UDim2.new(0, 1, 0, 10),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Parent = notification
+	})
+	Utilities.AddPadding(descriptionHolder, 0, 12, 0, 12)
+	Utilities.AddListLayout(descriptionHolder, 8)
+
+	local textHolder = Utilities.Create("Frame", {
+		Name = "TextHolder",
+		Size = UDim2.new(1, 1, 0, 10),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Parent = descriptionHolder
+	})
+	Utilities.AddPadding(textHolder, 0, 0, 0, 26)
+	Utilities.AddListLayout(textHolder, 0).Wraps = true
+
+	Utilities.Create("TextLabel", {
+		Text = text,
+		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular),
+		TextColor3 = Color3.fromRGB(66, 68, 86),
+		TextSize = 14,
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		RichText = true,
+		Parent = textHolder
+	})
+
+	-- Buttons inside description
+	local buttonHolder = Utilities.Create("Frame", {
+		Name = "ButtonHolder",
+		Size = UDim2.new(0, 1, 0, 10),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Parent = descriptionHolder
+	})
+	Utilities.AddPadding(buttonHolder, 0, 0, 0, 26)
+	Utilities.AddListLayout(buttonHolder, 8, Enum.FillDirection.Horizontal).Wraps = true
+
+	local primaryBtn = Utilities.Create("Frame", {
+		Name = "Button",
+		BackgroundColor3 = data.Color,
+		BackgroundTransparency = 0.95,
+		AutomaticSize = Enum.AutomaticSize.XY,
+		Parent = buttonHolder
+	})
+	Utilities.AddCorner(primaryBtn, 6)
+	Utilities.AddListLayout(primaryBtn, 0, Enum.FillDirection.Horizontal, Enum.HorizontalAlignment.Center).VerticalAlignment = Enum.VerticalAlignment.Center
+	
+	local btnLabel = Utilities.Create("TextLabel", {
+		Text = "Continue",
+		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.Regular),
+		TextColor3 = data.Color,
+		TextSize = 14,
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Parent = primaryBtn
+	})
+	Utilities.AddPadding(btnLabel, 6, 8, 6, 8)
+	
+	local btnTrigger = Utilities.Create("TextButton", {
+		Size = UDim2.fromScale(1,1),
+		BackgroundTransparency = 1,
+		Text = "",
+		Parent = primaryBtn
+	})
+
+	-- 3. Progress Bar Section
 	local progressContainer = Utilities.Create("Frame", {
 		Name = "ProgressHolder",
-		Size = UDim2.new(1, 0, 0, 2),
-		BackgroundColor3 = Color3.fromRGB(24, 25, 32),
+		Size = UDim2.new(1, 1, 0, 20),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundColor3 = Color3.fromRGB(19, 20, 25),
 		BorderSizePixel = 0,
 		Parent = notification
 	})
-	
-	local progressBar = Utilities.Create("Frame", {
-		Name = "Bar",
-		Size = UDim2.fromScale(1, 1),
-		BackgroundColor3 = data.Color,
-		BorderSizePixel = 0,
+	Utilities.AddCorner(progressContainer, 8)
+	Utilities.AddPadding(progressContainer, 0, 12, 0, 0)
+	Utilities.AddListLayout(progressContainer, 0, Enum.FillDirection.Horizontal)
+
+	local progHolderInner = Utilities.Create("Frame", {
+		Name = "Holder",
+		Size = UDim2.new(0, 1, 0, 1),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
 		Parent = progressContainer
 	})
+	Utilities.AddListLayout(progHolderInner, 6)
+
+	local progressbarWrap = Utilities.Create("Frame", {
+		Name = "Progressbar",
+		Size = UDim2.new(1, 1, 0, 5),
+		AutomaticSize = Enum.AutomaticSize.XY,
+		BackgroundTransparency = 1,
+		Parent = progHolderInner
+	})
+	Utilities.AddListLayout(progressbarWrap, 12, Enum.FillDirection.Horizontal)
+
+	local progressFill = Utilities.Create("Frame", {
+		Name = "Fill",
+		Size = UDim2.new(1, 0, 0, 5),
+		BackgroundColor3 = data.Color,
+		BorderSizePixel = 0,
+		Parent = progressbarWrap
+	})
+	Utilities.AddCorner(progressFill, 8)
 
 	-- Animation Logic
 	local function dismiss()
@@ -1642,16 +1749,15 @@ function Centrixity:Notify(title, text, duration, notifType)
 		end)
 	end
 
-	closeBtn.MouseButton1Click:Connect(dismiss)
-	continueClick.MouseButton1Click:Connect(dismiss)
+	closeTrigger.MouseButton1Click:Connect(dismiss)
+	btnTrigger.MouseButton1Click:Connect(dismiss)
 
-	-- Slide In
+	-- Entry Tween
 	Utilities.Tween(notification, {Position = UDim2.new(0, 0, 0, 0)}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 	
-	-- Life Cycle
+	-- Progress Bar Animation
 	task.delay(0.5, function()
-		local t = Utilities.Tween(progressBar, {Size = UDim2.fromScale(0, 1)}, duration, Enum.EasingStyle.Linear)
-		t.Completed:Connect(dismiss)
+		Utilities.Tween(progressFill, {Size = UDim2.fromScale(0, 1)}, duration, Enum.EasingStyle.Linear).Completed:Connect(dismiss)
 	end)
 end
 
