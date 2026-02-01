@@ -971,150 +971,150 @@ end
 -- ============================================
 -- NOTIFICATION SYSTEM
 -- ============================================
+-- ============================================
+-- NOTIFICATION SYSTEM (PREMIUM VERSION)
+-- ============================================
 function Centrixity:Notify(config)
 	config = config or {}
 	local notifType = config.Type or "Info"
 	local title = config.Title or "Notification"
-	local message = config.Message or ""
-	local duration = config.Duration or 5
+	local message = config.Message or "No message provided."
+	local duration = config.Duration or 6
 	
 	local theme = self.Theme
 	
-	-- Color schemes for different notification types
-	local colorSchemes = {
+	-- Notification-specific configuration based on type
+	local typeData = {
 		Info = {
-			Primary = theme.Primary,
-			Secondary = theme.Secondary,
-			Icon = "rbxassetid://7733960981"
+			AccentColor = theme.Primary,
+			SecondaryColor = theme.Secondary,
+			Icon = "rbxassetid://7733960981",
 		},
 		Success = {
-			Primary = theme.Success,
-			Secondary = Color3.fromRGB(45, 200, 95),
-			Icon = "rbxassetid://7733715400"
+			AccentColor = theme.Success,
+			SecondaryColor = Color3.fromRGB(45, 200, 95),
+			Icon = "rbxassetid://7733715400",
 		},
 		Error = {
-			Primary = theme.Error,
-			Secondary = Color3.fromRGB(220, 50, 50),
-			Icon = "rbxassetid://7733658504"
+			AccentColor = theme.Error,
+			SecondaryColor = Color3.fromRGB(220, 50, 50),
+			Icon = "rbxassetid://7733658504",
 		},
 		Warning = {
-			Primary = theme.Warning,
-			Secondary = Color3.fromRGB(255, 160, 50),
-			Icon = "rbxassetid://7733964719"
+			AccentColor = theme.Warning,
+			SecondaryColor = Color3.fromRGB(255, 160, 50),
+			Icon = "rbxassetid://7733964719",
 		}
 	}
-	local scheme = colorSchemes[notifType] or colorSchemes.Info
 	
-	-- Setup notification container if not exists
-	if not self._NotificationContainer then
-		local containerGui = self._ScreenGui
-		if not containerGui then
-			containerGui = Utilities.Create("ScreenGui", {
-				Name = "CentrixityNotifications",
-				ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-				ResetOnSpawn = false,
-			})
-			pcall(function()
-				containerGui.Parent = game:GetService("CoreGui")
-			end)
-			if not containerGui.Parent then
-				containerGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
-			end
-		end
-		
-		self._NotificationContainer = Utilities.Create("Frame", {
-			Name = "NotificationContainer",
-			AnchorPoint = Vector2.new(1, 0),
-			Position = UDim2.new(1, -24, 0, 24),
-			Size = UDim2.new(0, 320, 0, 600),
-			BackgroundTransparency = 1,
-			ClipsDescendants = false,
-			Parent = containerGui
+	local data = typeData[notifType] or typeData.Info
+	
+	-- Notification Manager GUI setup
+	if not self._NotifGui then
+		self._NotifGui = Utilities.Create("ScreenGui", {
+			Name = "CentrixityNotifications",
+			ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+			ResetOnSpawn = false,
 		})
 		
-		local listLayout = Instance.new("UIListLayout")
-		listLayout.Padding = UDim.new(0, 10)
-		listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-		listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
-		listLayout.Parent = self._NotificationContainer
+		-- Try to parent to CoreGui for executor compatibility
+		local success = pcall(function()
+			self._NotifGui.Parent = game:GetService("CoreGui")
+		end)
+		
+		if not success then
+			self._NotifGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+		end
+		
+		self._NotifHolder = Utilities.Create("Frame", {
+			Name = "NotificationHolder",
+			AnchorPoint = Vector2.new(1, 1),
+			Position = UDim2.new(1, -30, 1, -30),
+			Size = UDim2.new(0, 310, 0, 700),
+			BackgroundTransparency = 1,
+			Parent = self._NotifGui
+		})
+		
+		Utilities.AddListLayout(self._NotifHolder, 12, Enum.FillDirection.Vertical, Enum.HorizontalAlignment.Right)
+		self._NotifHolder.UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	end
 	
-	-- Wrapper for smooth list animations
+	-- Notification Wrapper (to maintain layout space)
 	local wrapper = Utilities.Create("Frame", {
-		Name = "NotifWrapper",
-		Size = UDim2.new(0, 300, 0, 0),
-		AutomaticSize = Enum.AutomaticSize.Y,
+		Name = "Wrapper",
+		Size = UDim2.new(0, 310, 0, 0), -- Animated height
 		BackgroundTransparency = 1,
-		ClipsDescendants = false,
-		Parent = self._NotificationContainer
+		Parent = self._NotifHolder
 	})
 	
-	-- Main notification frame
-	local notif = Utilities.Create("Frame", {
+	-- The Actual Notification Card
+	local card = Utilities.Create("Frame", {
 		Name = "Notification",
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
-		Position = UDim2.new(1.2, 0, 0, 0),
+		Position = UDim2.new(1.2, 0, 0, 0), -- Start offscreen right
 		BackgroundColor3 = theme.Background,
-		ClipsDescendants = true,
+		BackgroundTransparency = 0.05, -- Slight transparency for "premium" look
+		ClipsDescendants = false,
 		Parent = wrapper
 	})
-	Utilities.AddCorner(notif, 10)
-	Utilities.AddStroke(notif, theme.Border, 1)
 	
-	-- Left accent bar with gradient
-	local accentBar = Utilities.Create("Frame", {
-		Name = "AccentBar",
-		Size = UDim2.new(0, 4, 1, 0),
-		Position = UDim2.new(0, 0, 0, 0),
-		BackgroundColor3 = scheme.Primary,
+	Utilities.AddCorner(card, 12)
+	local stroke = Utilities.AddStroke(card, theme.Border, 1.2)
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	
+	-- Accent Bar (The "Glow" indicator on the left)
+	local accent = Utilities.Create("Frame", {
+		Name = "Accent",
+		Size = UDim2.new(0, 4, 1, -16),
+		Position = UDim2.new(0, 4, 0, 8),
+		BackgroundColor3 = data.AccentColor,
 		BorderSizePixel = 0,
-		Parent = notif
+		Parent = card
 	})
-	Utilities.AddCorner(accentBar, 10)
-	Utilities.CreateGradient(accentBar, 90, scheme.Primary, scheme.Secondary)
 	
-	-- Content container
+	Utilities.AddCorner(accent, 10)
+	Utilities.CreateGradient(accent, 90, data.AccentColor, data.SecondaryColor)
+	
+	-- Content Area
 	local content = Utilities.Create("Frame", {
 		Name = "Content",
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		Parent = notif
+		Parent = card
 	})
-	Utilities.AddPadding(content, 14, 16, 18, 20)
 	
-	local contentLayout = Instance.new("UIListLayout")
-	contentLayout.Padding = UDim.new(0, 8)
-	contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	contentLayout.Parent = content
+	Utilities.AddPadding(content, 18, 20, 22, 24) -- Generous spacing
 	
-	-- Header (Icon + Title)
+	-- Header Area
 	local header = Utilities.Create("Frame", {
 		Name = "Header",
-		Size = UDim2.new(1, 0, 0, 22),
+		Size = UDim2.new(1, 0, 0, 24),
 		BackgroundTransparency = 1,
-		LayoutOrder = 1,
 		Parent = content
 	})
 	
-	local headerLayout = Instance.new("UIListLayout")
-	headerLayout.FillDirection = Enum.FillDirection.Horizontal
+	local headerLayout = Utilities.AddListLayout(header, 10, Enum.FillDirection.Horizontal, Enum.HorizontalAlignment.Left)
 	headerLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	headerLayout.Padding = UDim.new(0, 10)
-	headerLayout.Parent = header
 	
-	-- Icon
-	local icon = Utilities.Create("ImageLabel", {
-		Name = "Icon",
-		Image = scheme.Icon,
-		ImageColor3 = scheme.Primary,
-		Size = UDim2.new(0, 18, 0, 18),
+	-- Icon with Gradient
+	local iconFrame = Utilities.Create("Frame", {
+		Size = UDim2.new(0, 20, 0, 20),
 		BackgroundTransparency = 1,
-		LayoutOrder = 1,
 		Parent = header
 	})
+	
+	local icon = Utilities.Create("ImageLabel", {
+		Name = "Icon",
+		Image = data.Icon,
+		ImageColor3 = data.AccentColor,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Parent = iconFrame
+	})
+	
+	Utilities.CreateGradient(icon, 90, data.AccentColor, data.SecondaryColor)
 	
 	-- Title
 	local titleLabel = Utilities.Create("TextLabel", {
@@ -1124,13 +1124,12 @@ function Centrixity:Notify(config)
 		TextColor3 = theme.TextPrimary,
 		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.new(1, -28, 1, 0),
+		Size = UDim2.new(1, -30, 1, 0),
 		BackgroundTransparency = 1,
-		LayoutOrder = 2,
 		Parent = header
 	})
 	
-	-- Message
+	-- Message Content
 	local messageLabel = Utilities.Create("TextLabel", {
 		Name = "Message",
 		Text = message,
@@ -1141,111 +1140,112 @@ function Centrixity:Notify(config)
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
 		TextWrapped = true,
+		Position = UDim2.new(0, 0, 0, 32),
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
-		LayoutOrder = 2,
 		Parent = content
 	})
 	
-	-- Progress bar container
+	-- Progress Bar (at the very bottom)
 	local progressContainer = Utilities.Create("Frame", {
 		Name = "ProgressContainer",
-		Size = UDim2.new(1, 0, 0, 10),
-		BackgroundTransparency = 1,
-		LayoutOrder = 3,
-		Parent = content
+		AnchorPoint = Vector2.new(0.5, 1),
+		Position = UDim2.new(0.5, 0, 1, 0),
+		Size = UDim2.new(1, -24, 0, 3),
+		BackgroundColor3 = theme.BackgroundDark,
+		BorderSizePixel = 0,
+		Parent = card
 	})
+	Utilities.AddPadding(progressContainer, 0, 0, 8, 0) -- Lift it up slightly
 	
-	-- Progress bar background
 	local progressBG = Utilities.Create("Frame", {
-		Name = "ProgressBG",
-		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.new(0.5, 0, 0.5, 0),
-		Size = UDim2.new(1, 0, 0, 4),
+		Name = "BG",
+		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundColor3 = theme.BackgroundLight,
+		BackgroundTransparency = 0.5,
 		BorderSizePixel = 0,
 		Parent = progressContainer
 	})
 	Utilities.AddCorner(progressBG, 4)
 	
-	-- Progress bar fill
-	local progressBar = Utilities.Create("Frame", {
-		Name = "ProgressFill",
+	local progressFill = Utilities.Create("Frame", {
+		Name = "Fill",
 		Size = UDim2.new(1, 0, 1, 0),
-		BackgroundColor3 = scheme.Primary,
+		BackgroundColor3 = data.AccentColor,
 		BorderSizePixel = 0,
 		Parent = progressBG
 	})
-	Utilities.AddCorner(progressBar, 4)
-	Utilities.CreateGradient(progressBar, 0, scheme.Primary, scheme.Secondary)
+	Utilities.AddCorner(progressFill, 4)
+	Utilities.CreateGradient(progressFill, 0, data.AccentColor, data.SecondaryColor)
 	
-	-- Click to dismiss button
-	local dismissBtn = Utilities.Create("TextButton", {
-		Name = "DismissButton",
+	-- Interactive Button (for manual dismissal)
+	local btn = Utilities.Create("TextButton", {
+		Name = "Dismiss",
 		Text = "",
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
-		ZIndex = 5,
-		Parent = notif
+		ZIndex = 10,
+		Parent = card
 	})
 	
-	-- Store tween reference for cancellation
-	local progressTween = nil
-	local isClosing = false
+	-- Logic Variables
+	local isDismissed = false
+	local progressTween
 	
-	-- Dismiss function
-	local function dismiss()
-		if isClosing then return end
-		isClosing = true
+	-- Function: Dismiss
+	local function doDismiss()
+		if isDismissed then return end
+		isDismissed = true
 		
-		if progressTween then
-			progressTween:Cancel()
-		end
+		if progressTween then progressTween:Cancel() end
 		
-		local fadeOut = Utilities.Tween(notif, {
-			Position = UDim2.new(1.2, 0, 0, 0),
-		}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+		-- Animate out
+		Utilities.Tween(card, {Position = UDim2.new(1.3, 0, 0, 0)}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.In)
 		
-		fadeOut.Completed:Connect(function()
-			wrapper:Destroy()
+		task.delay(0.4, function()
+			Utilities.Tween(wrapper, {Size = UDim2.new(0, 310, 0, 0)}, 0.3)
+			task.delay(0.35, function()
+				wrapper:Destroy()
+			end)
 		end)
 	end
 	
-	-- Click to dismiss
-	dismissBtn.MouseButton1Click:Connect(dismiss)
-	
-	-- Hover effect
-	dismissBtn.MouseEnter:Connect(function()
-		if not isClosing then
-			Utilities.Tween(notif, {BackgroundColor3 = theme.BackgroundLight}, 0.15)
-		end
-	end)
-	
-	dismissBtn.MouseLeave:Connect(function()
-		if not isClosing then
-			Utilities.Tween(notif, {BackgroundColor3 = theme.Background}, 0.15)
-		end
-	end)
-	
-	-- Slide in animation
-	local slideIn = Utilities.Tween(notif, {
-		Position = UDim2.new(0, 0, 0, 0)
-	}, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-	
-	slideIn.Completed:Connect(function()
-		if isClosing then return end
+	-- Entrance Logic
+	task.spawn(function()
+		-- Measure height first after parenting
+		task.wait(0.05)
+		local targetHeight = card.AbsoluteSize.Y
 		
-		-- Progress bar animation
-		progressTween = Utilities.Tween(progressBar, {
-			Size = UDim2.new(0, 0, 1, 0)
-		}, duration, Enum.EasingStyle.Linear)
+		-- Animate wrapper height expansion
+		Utilities.Tween(wrapper, {Size = UDim2.new(0, 310, 0, targetHeight)}, 0.4, Enum.EasingStyle.Quart)
 		
-		progressTween.Completed:Connect(function()
-			if not isClosing then
-				dismiss()
-			end
+		-- Animate card sliding in
+		task.wait(0.1)
+		local slideTween = Utilities.Tween(card, {Position = UDim2.new(0, 0, 0, 0)}, 0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+		
+		slideTween.Completed:Connect(function()
+			-- Start progress depletion
+			progressTween = Utilities.Tween(progressFill, {Size = UDim2.new(0, 0, 1, 0)}, duration, Enum.EasingStyle.Linear)
+			progressTween.Completed:Connect(function()
+				if not isDismissed then doDismiss() end
+			end)
 		end)
+	end)
+	
+	-- Event Listeners
+	btn.MouseButton1Click:Connect(doDismiss)
+	
+	btn.MouseEnter:Connect(function()
+		if not isDismissed then
+			Utilities.Tween(stroke, {Color = theme.Primary, Thickness = 1.5}, 0.2)
+		end
+	end)
+	
+	btn.MouseLeave:Connect(function()
+		if not isDismissed then
+			Utilities.Tween(stroke, {Color = theme.Border, Thickness = 1.2}, 0.2)
+		end
 	end)
 end
 
