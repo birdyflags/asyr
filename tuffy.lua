@@ -551,8 +551,10 @@ function Centrixity:CreateWindow(config)
             Tab.ActiveSubPage = nil
             for i, sp in ipairs(Tab.SubPages) do
                 sp:BuildButton(i == 1)
+                local content = TabPage:FindFirstChild(sp.Name)
+                if content then content.Visible = (i == 1) end
             end
-            if Tab.SubPages[1] then Tab.SubPages[1]:Select() end
+            if Tab.SubPages[1] then Tab.ActiveSubPage = Tab.SubPages[1] end
         end
         
         TabBtn.MouseButton1Click:Connect(function()
@@ -654,26 +656,26 @@ function Centrixity:CreateWindow(config)
                 if Tab.ActiveSubPage == SubPage then return end
                 
                 for _, sp in pairs(Tab.SubPages) do
-                    local content = TabPage:FindFirstChild(sp.Name)
-                    if content then
-                        TweenSmooth(content, {BackgroundTransparency = 1}, 0.15)
-                        task.delay(0.1, function() content.Visible = false end)
-                    end
-                    local btn = SubHeader:FindFirstChild(sp.Name)
-                    if btn then
-                        TweenSmooth(btn, {BackgroundTransparency = 1, TextColor3 = Theme.TextDark}, 0.25)
-                        local g = btn:FindFirstChildOfClass("UIGradient")
-                        if g then g:Destroy() end
+                    if sp ~= SubPage then
+                        local content = TabPage:FindFirstChild(sp.Name)
+                        if content and content.Visible then
+                            content.Visible = false
+                        end
+                        local btn = SubHeader:FindFirstChild(sp.Name)
+                        if btn then
+                            TweenSmooth(btn, {BackgroundTransparency = 1, TextColor3 = Theme.TextDark}, 0.2)
+                            local g = btn:FindFirstChildOfClass("UIGradient")
+                            if g then g:Destroy() end
+                        end
                     end
                 end
                 
                 Tab.ActiveSubPage = SubPage
                 SPContent.Visible = true
-                TweenSmooth(SPContent, {BackgroundTransparency = 1}, 0.25)
                 
                 local btn = SubHeader:FindFirstChild(spName)
                 if btn then
-                    TweenSmooth(btn, {BackgroundTransparency = 0.82, TextColor3 = Theme.Text}, 0.25)
+                    TweenSmooth(btn, {BackgroundTransparency = 0.82, TextColor3 = Theme.Text}, 0.2)
                     if not btn:FindFirstChildOfClass("UIGradient") then Gradient(btn) end
                 end
             end
@@ -1015,7 +1017,12 @@ function Centrixity:CreateWindow(config)
                 return Section
             end
             
-            if isFirstSP and isFirst then SubPage:BuildButton(true) end
+            if isFirst and isFirstSP then
+                task.defer(function()
+                    SubPage:BuildButton(true)
+                    Tab.ActiveSubPage = SubPage
+                end)
+            end
             
             return SubPage
         end
