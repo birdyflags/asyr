@@ -41,6 +41,24 @@ local function getgamename()
 	return ok and info and info.Name or "Unknown"
 end
 
+-- Safe callback execution with error notification
+local function safecall(window, name, callback, ...)
+	local args = {...}
+	local success, err = pcall(function()
+		callback(unpack(args))
+	end)
+	if not success and window and window.notify then
+		window:notify({
+			type = "error",
+			title = "Error in " .. (name or "callback"),
+			description = tostring(err) .. " - Please report this to our devs!",
+			duration = 8
+		})
+		warn("[UI Library Error] " .. (name or "callback") .. ": " .. tostring(err))
+	end
+	return success
+end
+
 function library:create(cfg)
 	cfg = cfg or {}
 	local title = cfg.title or "ZZZ"
@@ -550,7 +568,9 @@ function library:create(cfg)
 						end
 						
 						if not nocallback then
-							task.spawn(tcallback, state)
+							task.spawn(function()
+								safecall(tab.window, "Toggle: " .. tname, tcallback, state)
+							end)
 						end
 					end
 					
@@ -574,11 +594,137 @@ function library:create(cfg)
 					toggle.frame = tframe
 					
 					if tdefault then
-						task.spawn(tcallback, true)
+						task.spawn(function()
+							safecall(tab.window, "Toggle: " .. tname, tcallback, true)
+						end)
 					end
 					
 					table.insert(section.elements, toggle)
 					return toggle
+				end
+				
+				-- Button component with hover and click animations
+				function section:addbutton(cfg)
+					cfg = cfg or {}
+					local bname = cfg.name or "Button"
+					local bcallback = cfg.callback or function() end
+					
+					local button = {
+						name = bname,
+						callback = bcallback
+					}
+					
+					local bframe = create("Frame", {
+						Name = bname,
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 0, 32),
+						Parent = secholder
+					})
+					
+					local bbtn = create("Frame", {
+						Name = "btn",
+						AnchorPoint = Vector2.new(0, 0.5),
+						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
+						BorderSizePixel = 0,
+						Position = UDim2.new(0, 14, 0.5, 0),
+						Size = UDim2.new(1, -28, 0, 26),
+						ClipsDescendants = true,
+						Parent = bframe
+					})
+					create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = bbtn})
+					create("UIStroke", {
+						Color = Color3.fromRGB(35, 36, 45),
+						Thickness = 1,
+						Parent = bbtn
+					})
+					
+					local blbl = create("TextLabel", {
+						Name = "label",
+						AnchorPoint = Vector2.new(0.5, 0.5),
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0.5, 0, 0.5, 0),
+						Size = UDim2.new(1, -16, 1, 0),
+						Font = Enum.Font.GothamMedium,
+						Text = bname,
+						TextColor3 = library.colors.subtext,
+						TextSize = 12,
+						Parent = bbtn
+					})
+					
+					-- Ripple effect holder
+					local rippleholder = create("Frame", {
+						Name = "ripples",
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 1, 0),
+						ClipsDescendants = true,
+						Parent = bbtn
+					})
+					
+					local bclick = create("TextButton", {
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 1, 0),
+						Text = "",
+						ZIndex = 2,
+						Parent = bbtn
+					})
+					
+					-- Create ripple effect on click
+					local function createripple(x, y)
+						local ripple = create("Frame", {
+							AnchorPoint = Vector2.new(0.5, 0.5),
+							BackgroundColor3 = library.colors.accent,
+							BackgroundTransparency = 0.7,
+							Position = UDim2.new(0, x - bbtn.AbsolutePosition.X, 0, y - bbtn.AbsolutePosition.Y),
+							Size = UDim2.new(0, 0, 0, 0),
+							Parent = rippleholder
+						})
+						create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = ripple})
+						
+						local size = math.max(bbtn.AbsoluteSize.X, bbtn.AbsoluteSize.Y) * 2
+						tween(ripple, {Size = UDim2.new(0, size, 0, size), BackgroundTransparency = 1}, 0.4)
+						task.delay(0.4, function()
+							ripple:Destroy()
+						end)
+					end
+					
+					bclick.MouseButton1Click:Connect(function()
+						-- Click animation
+						tween(bbtn, {BackgroundColor3 = library.colors.accent}, 0.1)
+						tween(blbl, {TextColor3 = library.colors.text}, 0.1)
+						task.delay(0.15, function()
+							tween(bbtn, {BackgroundColor3 = Color3.fromRGB(30, 32, 42)}, 0.2)
+							tween(blbl, {TextColor3 = library.colors.subtext}, 0.2)
+						end)
+						
+						-- Ripple effect
+						local mouse = player:GetMouse()
+						createripple(mouse.X, mouse.Y)
+						
+						-- Safe callback
+						task.spawn(function()
+							safecall(tab.window, "Button: " .. bname, bcallback)
+						end)
+					end)
+					
+					-- Hover animations
+					bclick.MouseEnter:Connect(function()
+						tween(bbtn, {BackgroundColor3 = Color3.fromRGB(30, 32, 42)}, 0.15)
+						tween(blbl, {TextColor3 = library.colors.text}, 0.15)
+						tween(bbtn.UIStroke, {Color = library.colors.accent}, 0.15)
+					end)
+					
+					bclick.MouseLeave:Connect(function()
+						tween(bbtn, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
+						tween(blbl, {TextColor3 = library.colors.subtext}, 0.15)
+						tween(bbtn.UIStroke, {Color = Color3.fromRGB(35, 36, 45)}, 0.15)
+					end)
+					
+					button.frame = bframe
+					button.btn = bbtn
+					button.label = blbl
+					
+					table.insert(section.elements, button)
+					return button
 				end
 				
 				return section
