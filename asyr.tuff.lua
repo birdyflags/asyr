@@ -360,8 +360,19 @@ function library:create(cfg)
 				Parent = subindicator
 			})
 			
-			local page = create("ScrollingFrame", {
+			local pagewrapper = create("CanvasGroup", {
 				Name = subname,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1,
+				Position = UDim2.new(0.5, 0, 0.5, 0),
+				Size = UDim2.new(1, 0, 1, 0),
+				GroupTransparency = 0,
+				Visible = false,
+				Parent = pagecontainer
+			})
+			
+			local page = create("ScrollingFrame", {
+				Name = "scroll",
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -370,8 +381,7 @@ function library:create(cfg)
 				ScrollBarThickness = 3,
 				CanvasSize = UDim2.new(0, 0, 0, 0),
 				AutomaticCanvasSize = Enum.AutomaticSize.Y,
-				Visible = false,
-				Parent = pagecontainer
+				Parent = pagewrapper
 			})
 			create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10), Parent = page})
 			create("UIPadding", {PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), Parent = page})
@@ -587,6 +597,7 @@ function library:create(cfg)
 			subpage.btn = subbtn
 			subpage.label = sublbl
 			subpage.indicator = subindicator
+			subpage.wrapper = pagewrapper
 			subpage.container = page
 			subpage.tab = tab
 			
@@ -623,10 +634,10 @@ function library:create(cfg)
 			end
 			
 			if old.activesubpage then
-				local oldcontainer = old.activesubpage.container
-				tween(oldcontainer, {GroupTransparency = 1}, 0.15)
+				local oldwrapper = old.activesubpage.wrapper
+				tween(oldwrapper, {GroupTransparency = 1}, 0.15)
 				task.delay(0.15, function()
-					oldcontainer.Visible = false
+					oldwrapper.Visible = false
 				end)
 			end
 		end
@@ -643,10 +654,10 @@ function library:create(cfg)
 		end
 		
 		if tab.activesubpage then
-			local container = tab.activesubpage.container
-			container.Visible = true
-			container.GroupTransparency = 1
-			tween(container, {GroupTransparency = 0}, 0.2)
+			local wrapper = tab.activesubpage.wrapper
+			wrapper.Visible = true
+			wrapper.GroupTransparency = 1
+			tween(wrapper, {GroupTransparency = 0}, 0.2)
 			
 			tween(tab.activesubpage.label, {BackgroundTransparency = 0.8, TextColor3 = library.colors.text}, 0.2)
 			tween(tab.activesubpage.indicator, {Size = UDim2.new(0, 34, 0, 3)}, 0.25, Enum.EasingStyle.Back)
@@ -657,8 +668,8 @@ function library:create(cfg)
 	
 	function window:switchsubpage(tab, subpage)
 		if tab.activesubpage == subpage then
-			subpage.container.Visible = true
-			subpage.container.GroupTransparency = 0
+			subpage.wrapper.Visible = true
+			subpage.wrapper.GroupTransparency = 0
 			return
 		end
 		
@@ -666,10 +677,10 @@ function library:create(cfg)
 			local old = tab.activesubpage
 			tween(old.label, {BackgroundTransparency = 1, TextColor3 = library.colors.subtext}, 0.2)
 			tween(old.indicator, {Size = UDim2.new(0, 0, 0, 3)}, 0.2)
-			tween(old.container, {GroupTransparency = 1}, 0.15)
+			tween(old.wrapper, {GroupTransparency = 1}, 0.15)
 			task.delay(0.15, function()
 				if tab.activesubpage ~= old then
-					old.container.Visible = false
+					old.wrapper.Visible = false
 				end
 			end)
 		end
@@ -679,9 +690,9 @@ function library:create(cfg)
 		tween(subpage.label, {BackgroundTransparency = 0.8, TextColor3 = library.colors.text}, 0.2)
 		tween(subpage.indicator, {Size = UDim2.new(0, 34, 0, 3)}, 0.25, Enum.EasingStyle.Back)
 		
-		subpage.container.Visible = true
-		subpage.container.GroupTransparency = 1
-		tween(subpage.container, {GroupTransparency = 0}, 0.2)
+		subpage.wrapper.Visible = true
+		subpage.wrapper.GroupTransparency = 1
+		tween(subpage.wrapper, {GroupTransparency = 0}, 0.2)
 		subpage.container.CanvasPosition = Vector2.new(0, 0)
 	end
 	
