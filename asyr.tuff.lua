@@ -501,13 +501,6 @@ function library:create(cfg)
 					})
 					create("UICorner", {CornerRadius = UDim.new(0, 3), Parent = tbox})
 					
-					if tdefault then
-						create("UIGradient", {
-							Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
-							Parent = tbox
-						})
-					end
-					
 					local tcheck = create("ImageLabel", {
 						Name = "check",
 						AnchorPoint = Vector2.new(0.5, 0.5),
@@ -550,20 +543,10 @@ function library:create(cfg)
 							tween(tbox, {BackgroundColor3 = library.colors.accent}, 0.2)
 							tween(tcheck, {ImageTransparency = 0}, 0.15)
 							tween(tlbl, {TextColor3 = library.colors.text}, 0.2)
-							
-							if not tbox:FindFirstChild("UIGradient") then
-								create("UIGradient", {
-									Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
-									Parent = tbox
-								})
-							end
 						else
 							tween(tbox, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.2)
 							tween(tcheck, {ImageTransparency = 1}, 0.15)
 							tween(tlbl, {TextColor3 = library.colors.subtext}, 0.2)
-							
-							local grad = tbox:FindFirstChild("UIGradient")
-							if grad then grad:Destroy() end
 						end
 						
 						if not nocallback then
