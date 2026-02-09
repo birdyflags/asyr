@@ -10,7 +10,8 @@ library.colors = {
 	secondary = Color3.fromRGB(16, 17, 21),
 	text = Color3.fromRGB(255, 255, 255),
 	subtext = Color3.fromRGB(69, 71, 90),
-	border = Color3.fromRGB(28, 29, 36)
+	border = Color3.fromRGB(31, 31, 45),
+	stroke = Color3.fromRGB(28, 30, 38)
 }
 library.flags = {}
 library.tabs = {}
@@ -73,14 +74,14 @@ function library:create(cfg)
 		Size = UDim2.new(0, 0, 0, 0),
 		Parent = gui
 	})
-	create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = main})
+	create("UICorner", {CornerRadius = UDim.new(0, 11), Parent = main})
 	
 	local header = create("Frame", {
 		Name = "header",
 		AnchorPoint = Vector2.new(0.5, 0),
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0.5, 0, 0, 0),
-		Size = UDim2.new(1, 0, 0, 34),
+		Size = UDim2.new(1, 0, 0, 37),
 		Parent = main
 	})
 	
@@ -90,7 +91,7 @@ function library:create(cfg)
 		BackgroundColor3 = library.colors.border,
 		BorderSizePixel = 0,
 		Position = UDim2.new(0, 0, 1, 0),
-		Size = UDim2.new(1, 0, 0, 1),
+		Size = UDim2.new(1, 0, 0, 2),
 		Parent = header
 	})
 	
@@ -99,7 +100,7 @@ function library:create(cfg)
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 12, 0.5, 0),
-		Size = UDim2.new(0, 22, 0, 22),
+		Size = UDim2.new(0, 28, 0, 28),
 		Image = cfg.icon or "rbxassetid://72138752430505",
 		ScaleType = Enum.ScaleType.Fit,
 		Parent = header
@@ -109,13 +110,13 @@ function library:create(cfg)
 		Name = "title",
 		AnchorPoint = Vector2.new(0, 0.5),
 		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 40, 0.5, 0),
+		Position = UDim2.new(0, 46, 0.5, 0),
 		Size = UDim2.new(0, 250, 0, 20),
-		Font = Enum.Font.Gotham,
+		Font = Enum.Font.GothamBold,
 		Text = title .. '  <font color="#45475a">' .. gamename .. '</font>',
 		RichText = true,
 		TextColor3 = library.colors.text,
-		TextSize = 13,
+		TextSize = 14,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		Parent = header
 	})
@@ -125,7 +126,7 @@ function library:create(cfg)
 		AnchorPoint = Vector2.new(0, 1),
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 0, 1, 0),
-		Size = UDim2.new(0, 70, 1, -34),
+		Size = UDim2.new(0, 75, 1, -37),
 		Parent = main
 	})
 	
@@ -135,7 +136,7 @@ function library:create(cfg)
 		BackgroundColor3 = library.colors.border,
 		BorderSizePixel = 0,
 		Position = UDim2.new(1, 0, 0.5, 0),
-		Size = UDim2.new(0, 1, 1, 0),
+		Size = UDim2.new(0, 2, 1, 0),
 		Parent = sidebar
 	})
 	
@@ -147,14 +148,14 @@ function library:create(cfg)
 		Size = UDim2.new(1, 0, 1, 0),
 		Parent = sidebar
 	})
-	create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4), Parent = tabholder})
-	create("UIPadding", {PaddingLeft = UDim.new(0, 8), PaddingTop = UDim.new(0, 8), Parent = tabholder})
+	create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 5), Parent = tabholder})
+	create("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingTop = UDim.new(0, 10), Parent = tabholder})
 	
 	local subheader = create("Frame", {
 		Name = "subheader",
 		BackgroundTransparency = 1,
-		Position = UDim2.new(0, 70, 0, 34),
-		Size = UDim2.new(1, -70, 0, 40),
+		Position = UDim2.new(0, 75, 0, 37),
+		Size = UDim2.new(1, -75, 0, 45),
 		ClipsDescendants = true,
 		Parent = main
 	})
@@ -168,11 +169,11 @@ function library:create(cfg)
 	create("UIListLayout", {
 		FillDirection = Enum.FillDirection.Horizontal,
 		SortOrder = Enum.SortOrder.LayoutOrder,
-		Padding = UDim.new(0, 6),
+		Padding = UDim.new(0, 8),
 		VerticalAlignment = Enum.VerticalAlignment.Center,
 		Parent = subtabholder
 	})
-	create("UIPadding", {PaddingLeft = UDim.new(0, 16), Parent = subtabholder})
+	create("UIPadding", {PaddingLeft = UDim.new(0, 20), Parent = subtabholder})
 	
 	local pagecontainer = create("Frame", {
 		Name = "pages",
@@ -181,10 +182,10 @@ function library:create(cfg)
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
 		Position = UDim2.new(1, -2, 1, -2),
-		Size = UDim2.new(1, -74, 1, -78),
+		Size = UDim2.new(1, -79, 1, -86),
 		Parent = main
 	})
-	create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = pagecontainer})
+	create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = pagecontainer})
 	
 	local window = {
 		gui = gui,
@@ -220,7 +221,7 @@ function library:create(cfg)
 	
 	main.Size = UDim2.new(0, 0, 0, 0)
 	main.BackgroundTransparency = 1
-	tween(main, {Size = UDim2.new(0, 680, 0, 460), BackgroundTransparency = 0}, 0.45, Enum.EasingStyle.Back)
+	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0}, 0.45, Enum.EasingStyle.Back)
 	
 	function window:addtab(cfg)
 		cfg = cfg or {}
@@ -239,17 +240,17 @@ function library:create(cfg)
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
 			ClipsDescendants = true,
-			Size = UDim2.new(0, 54, 0, 52),
+			Size = UDim2.new(0, 55, 0, 60),
 			Parent = tabholder
 		})
-		create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = btn})
+		create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = btn})
 		
 		local icn = create("ImageLabel", {
 			Name = "icon",
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0.5, 0, 0.5, -6),
-			Size = UDim2.new(0, 20, 0, 20),
+			Position = UDim2.new(0.5, 0, 0.5, -8),
+			Size = UDim2.new(0, 24, 0, 22),
 			Image = tabicon,
 			ImageColor3 = library.colors.subtext,
 			Parent = btn
@@ -258,12 +259,12 @@ function library:create(cfg)
 		local lbl = create("TextLabel", {
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
-			Position = UDim2.new(0.5, 0, 0.5, 16),
-			Size = UDim2.new(1, 0, 0, 16),
-			Font = Enum.Font.Gotham,
+			Position = UDim2.new(0.5, 0, 0.5, 20),
+			Size = UDim2.new(1, 0, 0, 20),
+			Font = Enum.Font.GothamMedium,
 			Text = name,
 			TextColor3 = library.colors.subtext,
-			TextSize = 10,
+			TextSize = 11,
 			Parent = btn
 		})
 		
@@ -272,11 +273,15 @@ function library:create(cfg)
 			AnchorPoint = Vector2.new(0.5, 1),
 			BackgroundColor3 = library.colors.accent,
 			BorderSizePixel = 0,
-			Position = UDim2.new(0.5, 0, 1, 2),
-			Size = UDim2.new(0, 0, 0, 3),
+			Position = UDim2.new(0.5, 0, 1, 3),
+			Size = UDim2.new(0, 0, 0, 5),
 			Parent = btn
 		})
-		create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = indicator})
+		create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = indicator})
+		create("UIGradient", {
+			Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
+			Parent = indicator
+		})
 		
 		tab.btn = btn
 		tab.icon = icn
@@ -292,7 +297,7 @@ function library:create(cfg)
 		
 		click.MouseEnter:Connect(function()
 			if window.activetab ~= tab then
-				tween(btn, {BackgroundTransparency = 0.92}, 0.2)
+				tween(btn, {BackgroundTransparency = 0.85}, 0.2)
 			end
 		end)
 		
@@ -317,7 +322,7 @@ function library:create(cfg)
 			local subbtn = create("Frame", {
 				Name = subname,
 				BackgroundTransparency = 1,
-				Size = UDim2.new(0, 70, 0, 30),
+				Size = UDim2.new(0, 80, 0, 35),
 				Visible = false,
 				Parent = subtabholder
 			})
@@ -329,43 +334,47 @@ function library:create(cfg)
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0.5, 0, 0.5, 0),
 				Size = UDim2.new(0, 0, 0, 0),
-				Font = Enum.Font.Gotham,
+				Font = Enum.Font.GothamMedium,
 				Text = subname,
 				TextColor3 = library.colors.subtext,
-				TextSize = 12,
-				TextTransparency = 0.1,
+				TextSize = 13,
+				TextTransparency = 0.15,
 				AutomaticSize = Enum.AutomaticSize.XY,
 				Parent = subbtn
 			})
 			create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = sublbl})
-			create("UIPadding", {PaddingBottom = UDim.new(0, 6), PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 8), PaddingTop = UDim.new(0, 6), Parent = sublbl})
+			create("UIPadding", {PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingTop = UDim.new(0, 8), Parent = sublbl})
 			
 			local subindicator = create("Frame", {
 				Name = "indicator",
 				AnchorPoint = Vector2.new(0.5, 1),
 				BackgroundColor3 = library.colors.accent,
 				BorderSizePixel = 0,
-				Position = UDim2.new(0.5, 0, 1, 1),
+				Position = UDim2.new(0.5, 0, 1, 2),
 				Size = UDim2.new(0, 0, 0, 3),
 				Parent = subbtn
 			})
 			create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = subindicator})
+			create("UIGradient", {
+				Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
+				Parent = subindicator
+			})
 			
 			local page = create("ScrollingFrame", {
 				Name = subname,
 				AnchorPoint = Vector2.new(0.5, 0.5),
 				BackgroundTransparency = 1,
 				Position = UDim2.new(0.5, 0, 0.5, 0),
-				Size = UDim2.new(1, -16, 1, -16),
-				ScrollBarImageColor3 = Color3.fromRGB(45, 45, 55),
-				ScrollBarThickness = 2,
+				Size = UDim2.new(1, -20, 1, -20),
+				ScrollBarImageColor3 = Color3.fromRGB(50, 50, 60),
+				ScrollBarThickness = 3,
 				CanvasSize = UDim2.new(0, 0, 0, 0),
 				AutomaticCanvasSize = Enum.AutomaticSize.Y,
 				Visible = false,
 				Parent = pagecontainer
 			})
-			create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 8), Parent = page})
-			create("UIPadding", {PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), Parent = page})
+			create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10), Parent = page})
+			create("UIPadding", {PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), Parent = page})
 			
 			subpage.btn = subbtn
 			subpage.label = sublbl
@@ -399,7 +408,7 @@ function library:create(cfg)
 			tween(old.btn, {BackgroundTransparency = 1}, 0.25)
 			tween(old.icon, {ImageColor3 = library.colors.subtext}, 0.25)
 			tween(old.label, {TextColor3 = library.colors.subtext}, 0.25)
-			tween(old.indicator, {Size = UDim2.new(0, 0, 0, 3)}, 0.25)
+			tween(old.indicator, {Size = UDim2.new(0, 0, 0, 5)}, 0.25)
 			
 			for _, sub in ipairs(old.subpages) do
 				sub.btn.Visible = false
@@ -409,10 +418,10 @@ function library:create(cfg)
 		
 		window.activetab = tab
 		
-		tween(tab.btn, {BackgroundTransparency = 0.92}, 0.25)
+		tween(tab.btn, {BackgroundTransparency = 0.9}, 0.25)
 		tween(tab.icon, {ImageColor3 = library.colors.accent}, 0.25)
 		tween(tab.label, {TextColor3 = library.colors.text}, 0.25)
-		tween(tab.indicator, {Size = UDim2.new(0, 20, 0, 3)}, 0.3, Enum.EasingStyle.Back)
+		tween(tab.indicator, {Size = UDim2.new(0, 25, 0, 5)}, 0.3, Enum.EasingStyle.Back)
 		
 		for _, sub in ipairs(tab.subpages) do
 			sub.btn.Visible = true
@@ -437,8 +446,8 @@ function library:create(cfg)
 		
 		tab.activesubpage = subpage
 		
-		tween(subpage.label, {BackgroundTransparency = 0.85, TextColor3 = library.colors.text}, 0.2)
-		tween(subpage.indicator, {Size = UDim2.new(0, 28, 0, 3)}, 0.25, Enum.EasingStyle.Back)
+		tween(subpage.label, {BackgroundTransparency = 0.8, TextColor3 = library.colors.text}, 0.2)
+		tween(subpage.indicator, {Size = UDim2.new(0, 34, 0, 3)}, 0.25, Enum.EasingStyle.Back)
 		
 		subpage.container.Visible = true
 		subpage.container.CanvasPosition = Vector2.new(0, 0)
