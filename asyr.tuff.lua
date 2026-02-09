@@ -670,6 +670,9 @@ function library:create(cfg)
 			wrapper.Visible = true
 			wrapper.GroupTransparency = 1
 			tween(wrapper, {GroupTransparency = 0}, 0.2)
+			task.delay(0.22, function()
+				wrapper.GroupTransparency = 0
+			end)
 			
 			tween(tab.activesubpage.label, {BackgroundTransparency = 0.8, TextColor3 = library.colors.text}, 0.2)
 			tween(tab.activesubpage.indicator, {Size = UDim2.new(0, 34, 0, 3)}, 0.25, Enum.EasingStyle.Back)
@@ -705,6 +708,9 @@ function library:create(cfg)
 		subpage.wrapper.Visible = true
 		subpage.wrapper.GroupTransparency = 1
 		tween(subpage.wrapper, {GroupTransparency = 0}, 0.2)
+		task.delay(0.22, function()
+			subpage.wrapper.GroupTransparency = 0
+		end)
 		subpage.container.CanvasPosition = Vector2.new(0, 0)
 	end
 	
