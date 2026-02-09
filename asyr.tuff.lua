@@ -376,6 +376,231 @@ function library:create(cfg)
 			create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 10), Parent = page})
 			create("UIPadding", {PaddingTop = UDim.new(0, 10), PaddingBottom = UDim.new(0, 10), Parent = page})
 			
+			function subpage:addsection(cfg)
+				cfg = cfg or {}
+				local secname = cfg.name or "Section"
+				local secicon = cfg.icon or "rbxassetid://83273732891006"
+				
+				local section = {name = secname, elements = {}}
+				
+				local secframe = create("Frame", {
+					Name = secname,
+					BackgroundColor3 = Color3.fromRGB(17, 18, 22),
+					BorderSizePixel = 0,
+					ClipsDescendants = true,
+					Size = UDim2.new(1, 0, 0, 32),
+					AutomaticSize = Enum.AutomaticSize.Y,
+					Parent = page
+				})
+				create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = secframe})
+				
+				local secheader = create("Frame", {
+					Name = "header",
+					AnchorPoint = Vector2.new(0.5, 0),
+					BackgroundColor3 = library.colors.background,
+					BorderSizePixel = 0,
+					Position = UDim2.new(0.5, 0, 0, 0),
+					Size = UDim2.new(1, 0, 0, 32),
+					Parent = secframe
+				})
+				
+				local headerinner = create("Frame", {
+					Name = "inner",
+					AnchorPoint = Vector2.new(0.5, 0.5),
+					BackgroundTransparency = 1,
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					Size = UDim2.new(1, 0, 1, 0),
+					ClipsDescendants = true,
+					Parent = secheader
+				})
+				
+				local accentline = create("Frame", {
+					Name = "line",
+					AnchorPoint = Vector2.new(0, 0.5),
+					BackgroundColor3 = library.colors.accent,
+					BorderSizePixel = 0,
+					Position = UDim2.new(0, 0, 0.5, 0),
+					Size = UDim2.new(0, 3, 0, 18),
+					Parent = headerinner
+				})
+				create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = accentline})
+				
+				local secicn = create("ImageLabel", {
+					Name = "icon",
+					AnchorPoint = Vector2.new(0, 0.5),
+					BackgroundTransparency = 1,
+					Position = UDim2.new(0, 14, 0.5, 0),
+					Size = UDim2.new(0, 14, 0, 14),
+					Image = secicon,
+					ImageColor3 = library.colors.accent,
+					Parent = headerinner
+				})
+				
+				local seclbl = create("TextLabel", {
+					Name = "name",
+					AnchorPoint = Vector2.new(0, 0.5),
+					BackgroundTransparency = 1,
+					Position = UDim2.new(0, 36, 0.5, 0),
+					Size = UDim2.new(1, -48, 0, 20),
+					Font = Enum.Font.GothamMedium,
+					Text = secname,
+					TextColor3 = library.colors.text,
+					TextSize = 12,
+					TextXAlignment = Enum.TextXAlignment.Left,
+					Parent = headerinner
+				})
+				
+				local secholder = create("Frame", {
+					Name = "holder",
+					AnchorPoint = Vector2.new(0.5, 0),
+					BackgroundTransparency = 1,
+					Position = UDim2.new(0.5, 0, 0, 32),
+					Size = UDim2.new(1, 0, 0, 0),
+					AutomaticSize = Enum.AutomaticSize.Y,
+					Parent = secframe
+				})
+				create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 2), Parent = secholder})
+				create("UIPadding", {PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 8), Parent = secholder})
+				
+				section.frame = secframe
+				section.holder = secholder
+				section.subpage = subpage
+				
+				function section:addtoggle(cfg)
+					cfg = cfg or {}
+					local tname = cfg.name or "Toggle"
+					local tdefault = cfg.default or false
+					local tcallback = cfg.callback or function() end
+					local tflag = cfg.flag
+					
+					local toggle = {
+						name = tname,
+						value = tdefault,
+						callback = tcallback
+					}
+					
+					if tflag then
+						library.flags[tflag] = tdefault
+					end
+					
+					local tframe = create("Frame", {
+						Name = tname,
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 0, 28),
+						Parent = secholder
+					})
+					
+					local tbox = create("Frame", {
+						Name = "box",
+						AnchorPoint = Vector2.new(0, 0.5),
+						BackgroundColor3 = tdefault and library.colors.accent or Color3.fromRGB(24, 25, 32),
+						BorderSizePixel = 0,
+						Position = UDim2.new(0, 14, 0.5, 0),
+						Size = UDim2.new(0, 14, 0, 14),
+						Parent = tframe
+					})
+					create("UICorner", {CornerRadius = UDim.new(0, 3), Parent = tbox})
+					
+					if tdefault then
+						create("UIGradient", {
+							Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
+							Parent = tbox
+						})
+					end
+					
+					local tcheck = create("ImageLabel", {
+						Name = "check",
+						AnchorPoint = Vector2.new(0.5, 0.5),
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0.5, 0, 0.5, 0),
+						Size = tdefault and UDim2.new(0, 8, 0, 7) or UDim2.new(0, 0, 0, 0),
+						Image = "rbxassetid://83899464799881",
+						ImageTransparency = tdefault and 0 or 1,
+						Parent = tbox
+					})
+					
+					local tlbl = create("TextLabel", {
+						Name = "name",
+						AnchorPoint = Vector2.new(0, 0.5),
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 36, 0.5, 0),
+						Size = UDim2.new(1, -48, 0, 20),
+						Font = Enum.Font.Gotham,
+						Text = tname,
+						TextColor3 = tdefault and library.colors.text or library.colors.subtext,
+						TextSize = 12,
+						TextXAlignment = Enum.TextXAlignment.Left,
+						Parent = tframe
+					})
+					
+					local tbtn = create("TextButton", {
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 1, 0),
+						Text = "",
+						Parent = tframe
+					})
+					
+					local function setstate(state, nocallback)
+						toggle.value = state
+						if tflag then
+							library.flags[tflag] = state
+						end
+						
+						if state then
+							tween(tbox, {BackgroundColor3 = library.colors.accent}, 0.2)
+							tween(tcheck, {Size = UDim2.new(0, 8, 0, 7), ImageTransparency = 0}, 0.2, Enum.EasingStyle.Back)
+							tween(tlbl, {TextColor3 = library.colors.text}, 0.2)
+							
+							if not tbox:FindFirstChild("UIGradient") then
+								create("UIGradient", {
+									Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
+									Parent = tbox
+								})
+							end
+						else
+							tween(tbox, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.2)
+							tween(tcheck, {Size = UDim2.new(0, 0, 0, 0), ImageTransparency = 1}, 0.15)
+							tween(tlbl, {TextColor3 = library.colors.subtext}, 0.2)
+							
+							local grad = tbox:FindFirstChild("UIGradient")
+							if grad then grad:Destroy() end
+						end
+						
+						if not nocallback then
+							task.spawn(tcallback, state)
+						end
+					end
+					
+					tbtn.MouseButton1Click:Connect(function()
+						setstate(not toggle.value)
+					end)
+					
+					tbtn.MouseEnter:Connect(function()
+						if not toggle.value then
+							tween(tbox, {BackgroundColor3 = Color3.fromRGB(30, 32, 42)}, 0.15)
+						end
+					end)
+					
+					tbtn.MouseLeave:Connect(function()
+						if not toggle.value then
+							tween(tbox, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
+						end
+					end)
+					
+					toggle.set = setstate
+					toggle.frame = tframe
+					
+					if tdefault then
+						task.spawn(tcallback, true)
+					end
+					
+					table.insert(section.elements, toggle)
+					return toggle
+				end
+				
+				return section
+			end
+			
 			subpage.btn = subbtn
 			subpage.label = sublbl
 			subpage.indicator = subindicator
