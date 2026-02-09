@@ -719,7 +719,7 @@ function library:create(cfg)
 					return button
 				end
 
-				-- Slider component with smooth animations
+				-- Slider component matching hi.txt design
 				function section:addslider(cfg)
 					cfg = cfg or {}
 					local sname = cfg.name or "Slider"
@@ -748,7 +748,7 @@ function library:create(cfg)
 					local sframe = create("Frame", {
 						Name = sname,
 						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 0, 0, 40),
+						Size = UDim2.new(1, 0, 0, 45),
 						Parent = secholder
 					})
 
@@ -756,12 +756,12 @@ function library:create(cfg)
 						Name = "label",
 						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 23, 0.5, -8),
+						Position = UDim2.new(0, 23, 0.5, -10),
 						Size = UDim2.new(0.5, -30, 0, 20),
 						Font = Enum.Font.Gotham,
 						Text = sname,
 						TextColor3 = library.colors.subtext,
-						TextSize = 13,
+						TextSize = 14,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						Parent = sframe
 					})
@@ -770,23 +770,23 @@ function library:create(cfg)
 						Name = "value",
 						AnchorPoint = Vector2.new(1, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(1, -22, 0.5, -8),
+						Position = UDim2.new(1, -22, 0.5, -10),
 						Size = UDim2.new(0, 50, 0, 20),
 						Font = Enum.Font.GothamMedium,
 						Text = tostring(sdefault) .. ssuffix,
 						TextColor3 = library.colors.text,
-						TextSize = 13,
+						TextSize = 14,
 						TextXAlignment = Enum.TextXAlignment.Right,
 						Parent = sframe
 					})
 
 					local progressbg = create("Frame", {
 						Name = "progressbg",
-						AnchorPoint = Vector2.new(0, 0.5),
+						AnchorPoint = Vector2.new(0.5, 0.5),
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 						BorderSizePixel = 0,
-						Position = UDim2.new(0, 23, 0.5, 13),
-						Size = UDim2.new(1, -46, 0, 4),
+						Position = UDim2.new(0.5, 0, 0.5, 14),
+						Size = UDim2.new(1, -46, 0, 6),
 						Parent = sframe
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressbg})
@@ -804,7 +804,7 @@ function library:create(cfg)
 						BackgroundColor3 = library.colors.accent,
 						BorderSizePixel = 0,
 						Position = UDim2.new(0, 0, 0.5, 0),
-						Size = UDim2.new(initialpercent, 0, 0, 7),
+						Size = UDim2.new(initialpercent, 0, 0, 10),
 						Parent = progressbg
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progress})
@@ -822,7 +822,7 @@ function library:create(cfg)
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 						BorderSizePixel = 0,
 						Position = UDim2.new(1, 0, 0.5, 0),
-						Size = UDim2.new(0, 6, 0, 6),
+						Size = UDim2.new(0, 8, 0, 8),
 						Parent = progress
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = pointer})
@@ -834,8 +834,7 @@ function library:create(cfg)
 						BackgroundTransparency = 0.5,
 						BorderSizePixel = 0,
 						Position = UDim2.new(0.5, 0, 0.5, 0),
-						Size = UDim2.new(0, 14, 0, 14),
-						Visible = false,
+						Size = UDim2.new(0, 18, 0, 18),
 						Parent = pointer
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = design})
@@ -849,7 +848,6 @@ function library:create(cfg)
 					})
 
 					local dragging = false
-					local hovering = false
 
 					local function roundtoincrement(value)
 						return math.floor(value / sincrement + 0.5) * sincrement
@@ -867,7 +865,7 @@ function library:create(cfg)
 						end
 
 						local actualpercent = (newvalue - smin) / (smax - smin)
-						tween(progress, {Size = UDim2.new(actualpercent, 0, 0, 7)}, 0.08, Enum.EasingStyle.Quad)
+						tween(progress, {Size = UDim2.new(actualpercent, 0, 0, 10)}, 0.08, Enum.EasingStyle.Quad)
 						svalue.Text = tostring(newvalue) .. ssuffix
 
 						if not nocallback then
@@ -895,10 +893,6 @@ function library:create(cfg)
 						if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 							dragging = true
 							handleinput(input)
-							design.Visible = true
-							tween(design, {BackgroundTransparency = 0.5, Size = UDim2.new(0, 16, 0, 16)}, 0.15)
-							tween(pointer, {Size = UDim2.new(0, 8, 0, 8)}, 0.15)
-							tween(progress, {Size = UDim2.new(progress.Size.X.Scale, 0, 0, 8)}, 0.1)
 						end
 					end)
 
@@ -910,45 +904,7 @@ function library:create(cfg)
 
 					userinput.InputEnded:Connect(function(input)
 						if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-							if dragging then
-								dragging = false
-								if not hovering then
-									tween(design, {BackgroundTransparency = 1, Size = UDim2.new(0, 14, 0, 14)}, 0.2)
-									task.delay(0.2, function()
-										if not hovering and not dragging then
-											design.Visible = false
-										end
-									end)
-									tween(pointer, {Size = UDim2.new(0, 6, 0, 6)}, 0.15)
-									tween(progress, {Size = UDim2.new(progress.Size.X.Scale, 0, 0, 7)}, 0.1)
-								end
-							end
-						end
-					end)
-
-					sclick.MouseEnter:Connect(function()
-						hovering = true
-						tween(slbl, {TextColor3 = library.colors.text}, 0.15)
-						design.Visible = true
-						tween(design, {BackgroundTransparency = 0.6, Size = UDim2.new(0, 14, 0, 14)}, 0.15)
-						tween(pointer, {Size = UDim2.new(0, 7, 0, 7)}, 0.15)
-						tween(progress, {Size = UDim2.new(progress.Size.X.Scale, 0, 0, 8)}, 0.1)
-						tween(progressbg.UIStroke, {Color = library.colors.accent}, 0.15)
-					end)
-
-					sclick.MouseLeave:Connect(function()
-						hovering = false
-						if not dragging then
-							tween(slbl, {TextColor3 = library.colors.subtext}, 0.15)
-							tween(design, {BackgroundTransparency = 1, Size = UDim2.new(0, 12, 0, 12)}, 0.2)
-							task.delay(0.2, function()
-								if not hovering and not dragging then
-									design.Visible = false
-								end
-							end)
-							tween(pointer, {Size = UDim2.new(0, 6, 0, 6)}, 0.15)
-							tween(progress, {Size = UDim2.new(progress.Size.X.Scale, 0, 0, 7)}, 0.1)
-							tween(progressbg.UIStroke, {Color = Color3.fromRGB(28, 30, 38)}, 0.15)
+							dragging = false
 						end
 					end)
 
