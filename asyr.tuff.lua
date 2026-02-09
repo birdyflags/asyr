@@ -860,7 +860,7 @@ function library:create(cfg)
 		},
 		error = {
 			color = Color3.fromRGB(255, 75, 75),
-			icon = "rbxassetid://124971904960139"
+			icon = "rbxassetid://70479764730792"
 		}
 	}
 	
