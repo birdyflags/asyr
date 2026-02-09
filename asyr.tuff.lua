@@ -460,6 +460,180 @@ function library:create(cfg)
 		end)
 	end
 	
+	local notifholder = create("Frame", {
+		Name = "notifications",
+		AnchorPoint = Vector2.new(1, 0),
+		BackgroundTransparency = 1,
+		Position = UDim2.new(1, -20, 0, 20),
+		Size = UDim2.new(0, 280, 1, -40),
+		Parent = gui
+	})
+	create("UIListLayout", {
+		SortOrder = Enum.SortOrder.LayoutOrder,
+		Padding = UDim.new(0, 8),
+		VerticalAlignment = Enum.VerticalAlignment.Bottom,
+		Parent = notifholder
+	})
+	
+	local notiftypes = {
+		success = {
+			color = Color3.fromRGB(47, 255, 0),
+			icon = "rbxassetid://92431556586885"
+		},
+		warning = {
+			color = Color3.fromRGB(255, 214, 10),
+			icon = "rbxassetid://70479764730792"
+		},
+		error = {
+			color = Color3.fromRGB(255, 75, 75),
+			icon = "rbxassetid://124971904960139"
+		}
+	}
+	
+	function window:notify(cfg)
+		cfg = cfg or {}
+		local ntype = cfg.type or "success"
+		local ntitle = cfg.title or "Notification"
+		local ndesc = cfg.description or ""
+		local nduration = cfg.duration or 4
+		
+		local typedata = notiftypes[ntype] or notiftypes.success
+		
+		local notif = create("Frame", {
+			Name = "notif",
+			BackgroundColor3 = library.colors.background,
+			BorderSizePixel = 0,
+			ClipsDescendants = true,
+			Size = UDim2.new(1, 0, 0, 0),
+			Parent = notifholder
+		})
+		create("UICorner", {CornerRadius = UDim.new(0, 6), Parent = notif})
+		
+		local content = create("Frame", {
+			Name = "content",
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 1, 0),
+			Parent = notif
+		})
+		
+		local iconholder = create("Frame", {
+			Name = "iconholder",
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 12, 0.5, -8),
+			Size = UDim2.new(0, 24, 0, 24),
+			Parent = content
+		})
+		
+		local icn = create("ImageLabel", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(0, 18, 0, 18),
+			Image = typedata.icon,
+			ImageColor3 = typedata.color,
+			Parent = iconholder
+		})
+		
+		local titlelbl = create("TextLabel", {
+			Name = "title",
+			AnchorPoint = Vector2.new(0, 0),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 44, 0, 10),
+			Size = UDim2.new(1, -56, 0, 16),
+			Font = Enum.Font.GothamMedium,
+			Text = ntitle,
+			TextColor3 = library.colors.text,
+			TextSize = 13,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = content
+		})
+		
+		local desclbl = create("TextLabel", {
+			Name = "desc",
+			AnchorPoint = Vector2.new(0, 0),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0, 44, 0, 28),
+			Size = UDim2.new(1, -56, 0, 28),
+			Font = Enum.Font.Gotham,
+			Text = ndesc,
+			TextColor3 = library.colors.subtext,
+			TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextYAlignment = Enum.TextYAlignment.Top,
+			TextWrapped = true,
+			TextTruncate = Enum.TextTruncate.AtEnd,
+			Parent = content
+		})
+		
+		local progressbg = create("Frame", {
+			Name = "progressbg",
+			AnchorPoint = Vector2.new(0.5, 1),
+			BackgroundColor3 = Color3.fromRGB(30, 31, 38),
+			BorderSizePixel = 0,
+			Position = UDim2.new(0.5, 0, 1, 0),
+			Size = UDim2.new(1, 0, 0, 3),
+			Parent = notif
+		})
+		
+		local progress = create("Frame", {
+			Name = "progress",
+			BackgroundColor3 = typedata.color,
+			BorderSizePixel = 0,
+			Size = UDim2.new(1, 0, 1, 0),
+			Parent = progressbg
+		})
+		create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = progress})
+		
+		local closebtn = create("TextButton", {
+			Name = "close",
+			AnchorPoint = Vector2.new(1, 0),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(1, -8, 0, 8),
+			Size = UDim2.new(0, 20, 0, 20),
+			Text = "",
+			Parent = content
+		})
+		
+		local closeicon = create("ImageLabel", {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(0, 12, 0, 12),
+			Image = "rbxassetid://124971904960139",
+			ImageColor3 = library.colors.subtext,
+			Parent = closebtn
+		})
+		
+		local closed = false
+		local function closenotif()
+			if closed then return end
+			closed = true
+			tween(notif, {Size = UDim2.new(1, 0, 0, 0)}, 0.25)
+			task.delay(0.3, function()
+				notif:Destroy()
+			end)
+		end
+		
+		closebtn.MouseButton1Click:Connect(closenotif)
+		closebtn.MouseEnter:Connect(function()
+			tween(closeicon, {ImageColor3 = library.colors.text}, 0.15)
+		end)
+		closebtn.MouseLeave:Connect(function()
+			tween(closeicon, {ImageColor3 = library.colors.subtext}, 0.15)
+		end)
+		
+		tween(notif, {Size = UDim2.new(1, 0, 0, 68)}, 0.35, Enum.EasingStyle.Back)
+		tween(progress, {Size = UDim2.new(0, 0, 1, 0)}, nduration, Enum.EasingStyle.Linear)
+		
+		task.delay(nduration, closenotif)
+		
+		return {
+			close = closenotif
+		}
+	end
+	
 	return window
 end
 
