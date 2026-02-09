@@ -513,7 +513,7 @@ function library:create(cfg)
 						AnchorPoint = Vector2.new(0.5, 0.5),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.5, 0, 0.5, 0),
-						Size = tdefault and UDim2.new(0, 8, 0, 7) or UDim2.new(0, 0, 0, 0),
+						Size = UDim2.new(0, 8, 0, 7),
 						Image = "rbxassetid://83899464799881",
 						ImageTransparency = tdefault and 0 or 1,
 						Parent = tbox
@@ -548,7 +548,7 @@ function library:create(cfg)
 						
 						if state then
 							tween(tbox, {BackgroundColor3 = library.colors.accent}, 0.2)
-							tween(tcheck, {Size = UDim2.new(0, 8, 0, 7), ImageTransparency = 0}, 0.2, Enum.EasingStyle.Back)
+							tween(tcheck, {ImageTransparency = 0}, 0.15)
 							tween(tlbl, {TextColor3 = library.colors.text}, 0.2)
 							
 							if not tbox:FindFirstChild("UIGradient") then
@@ -559,7 +559,7 @@ function library:create(cfg)
 							end
 						else
 							tween(tbox, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.2)
-							tween(tcheck, {Size = UDim2.new(0, 0, 0, 0), ImageTransparency = 1}, 0.15)
+							tween(tcheck, {ImageTransparency = 1}, 0.15)
 							tween(tlbl, {TextColor3 = library.colors.subtext}, 0.2)
 							
 							local grad = tbox:FindFirstChild("UIGradient")
