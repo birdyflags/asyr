@@ -719,7 +719,7 @@ function library:create(cfg)
 					return button
 				end
 
-				-- Slider component matching hi.txt design
+				-- Slider component matching hi.txt design exactly
 				function section:addslider(cfg)
 					cfg = cfg or {}
 					local sname = cfg.name or "Slider"
@@ -745,19 +745,21 @@ function library:create(cfg)
 						library.flags[sflag] = sdefault
 					end
 
+					-- Main frame - 40px height like hi.txt
 					local sframe = create("Frame", {
 						Name = sname,
 						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 0, 0, 45),
+						Size = UDim2.new(1, 0, 0, 40),
 						Parent = secholder
 					})
 
+					-- Label on left - Position 23, 0.5, -8 like hi.txt
 					local slbl = create("TextLabel", {
 						Name = "label",
 						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 23, 0.5, -10),
-						Size = UDim2.new(0.5, -30, 0, 20),
+						Position = UDim2.new(0, 23, 0.5, -8),
+						Size = UDim2.new(0, 1, 0, 1),
 						Font = Enum.Font.Gotham,
 						Text = sname,
 						TextColor3 = library.colors.subtext,
@@ -766,12 +768,13 @@ function library:create(cfg)
 						Parent = sframe
 					})
 
+					-- Value on right - Position 1, -22, 0.5, -8 like hi.txt
 					local svalue = create("TextLabel", {
 						Name = "value",
 						AnchorPoint = Vector2.new(1, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(1, -22, 0.5, -10),
-						Size = UDim2.new(0, 50, 0, 20),
+						Position = UDim2.new(1, -22, 0.5, -8),
+						Size = UDim2.new(0, 1, 0, 1),
 						Font = Enum.Font.GothamMedium,
 						Text = tostring(sdefault) .. ssuffix,
 						TextColor3 = library.colors.text,
@@ -780,13 +783,14 @@ function library:create(cfg)
 						Parent = sframe
 					})
 
+					-- Progress background - 4px height, position at 0.5, 13 like hi.txt
 					local progressbg = create("Frame", {
 						Name = "progressbg",
-						AnchorPoint = Vector2.new(0.5, 0.5),
+						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 						BorderSizePixel = 0,
-						Position = UDim2.new(0.5, 0, 0.5, 14),
-						Size = UDim2.new(1, -46, 0, 6),
+						Position = UDim2.new(0, 23, 0.5, 13),
+						Size = UDim2.new(1, -46, 0, 4),
 						Parent = sframe
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressbg})
@@ -798,35 +802,38 @@ function library:create(cfg)
 
 					local initialpercent = (sdefault - smin) / (smax - smin)
 
+					-- Progress fill - 7px height like hi.txt
 					local progress = create("Frame", {
 						Name = "progress",
 						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundColor3 = library.colors.accent,
 						BorderSizePixel = 0,
 						Position = UDim2.new(0, 0, 0.5, 0),
-						Size = UDim2.new(initialpercent, 0, 0, 10),
+						Size = UDim2.new(initialpercent, 0, 0, 7),
 						Parent = progressbg
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progress})
 					create("UIGradient", {
 						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
+							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
 						},
 						Parent = progress
 					})
 
+					-- Pointer - 6x6 like hi.txt
 					local pointer = create("Frame", {
 						Name = "pointer",
 						AnchorPoint = Vector2.new(1, 0.5),
 						BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 						BorderSizePixel = 0,
 						Position = UDim2.new(1, 0, 0.5, 0),
-						Size = UDim2.new(0, 8, 0, 8),
+						Size = UDim2.new(0, 6, 0, 6),
 						Parent = progress
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = pointer})
 
+					-- Design glow - 14x14 with 0.5 transparency like hi.txt
 					local design = create("Frame", {
 						Name = "design",
 						AnchorPoint = Vector2.new(0.5, 0.5),
@@ -834,13 +841,15 @@ function library:create(cfg)
 						BackgroundTransparency = 0.5,
 						BorderSizePixel = 0,
 						Position = UDim2.new(0.5, 0, 0.5, 0),
-						Size = UDim2.new(0, 18, 0, 18),
+						Size = UDim2.new(0, 14, 0, 14),
 						Parent = pointer
 					})
 					create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = design})
 
+					-- Clickable area covering the whole slider area for easier clicking
 					local sclick = create("TextButton", {
 						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 0, 0, 0),
 						Size = UDim2.new(1, 0, 1, 0),
 						Text = "",
 						ZIndex = 2,
@@ -865,7 +874,8 @@ function library:create(cfg)
 						end
 
 						local actualpercent = (newvalue - smin) / (smax - smin)
-						tween(progress, {Size = UDim2.new(actualpercent, 0, 0, 10)}, 0.08, Enum.EasingStyle.Quad)
+						-- Smooth tween animation
+						tween(progress, {Size = UDim2.new(actualpercent, 0, 0, 7)}, 0.1, Enum.EasingStyle.Quad)
 						svalue.Text = tostring(newvalue) .. ssuffix
 
 						if not nocallback then
