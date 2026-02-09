@@ -609,8 +609,20 @@ function library:create(cfg)
 			
 			table.insert(tab.subpages, subpage)
 			
+			-- Make subpage button visible if this is the active tab
+			if window.activetab == tab then
+				subbtn.Visible = true
+			end
+			
+			-- Activate first subpage of the active tab
 			if #tab.subpages == 1 and window.activetab == tab then
-				window:switchsubpage(tab, subpage)
+				tab.activesubpage = subpage
+				-- Set initial state without animation for first subpage
+				subpage.wrapper.Visible = true
+				subpage.wrapper.GroupTransparency = 0
+				subpage.label.BackgroundTransparency = 0.8
+				subpage.label.TextColor3 = library.colors.text
+				subpage.indicator.Size = UDim2.new(0, 34, 0, 3)
 			end
 			
 			return subpage
