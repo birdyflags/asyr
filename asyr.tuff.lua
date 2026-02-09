@@ -620,7 +620,14 @@ function library:create(cfg)
 			
 			for _, sub in ipairs(old.subpages) do
 				sub.btn.Visible = false
-				sub.container.Visible = false
+			end
+			
+			if old.activesubpage then
+				local oldcontainer = old.activesubpage.container
+				tween(oldcontainer, {GroupTransparency = 1}, 0.15)
+				task.delay(0.15, function()
+					oldcontainer.Visible = false
+				end)
 			end
 		end
 		
@@ -636,20 +643,35 @@ function library:create(cfg)
 		end
 		
 		if tab.activesubpage then
-			window:switchsubpage(tab, tab.activesubpage)
+			local container = tab.activesubpage.container
+			container.Visible = true
+			container.GroupTransparency = 1
+			tween(container, {GroupTransparency = 0}, 0.2)
+			
+			tween(tab.activesubpage.label, {BackgroundTransparency = 0.8, TextColor3 = library.colors.text}, 0.2)
+			tween(tab.activesubpage.indicator, {Size = UDim2.new(0, 34, 0, 3)}, 0.25, Enum.EasingStyle.Back)
 		elseif #tab.subpages > 0 then
 			window:switchsubpage(tab, tab.subpages[1])
 		end
 	end
 	
 	function window:switchsubpage(tab, subpage)
-		if tab.activesubpage == subpage then return end
+		if tab.activesubpage == subpage then
+			subpage.container.Visible = true
+			subpage.container.GroupTransparency = 0
+			return
+		end
 		
 		if tab.activesubpage then
 			local old = tab.activesubpage
 			tween(old.label, {BackgroundTransparency = 1, TextColor3 = library.colors.subtext}, 0.2)
 			tween(old.indicator, {Size = UDim2.new(0, 0, 0, 3)}, 0.2)
-			old.container.Visible = false
+			tween(old.container, {GroupTransparency = 1}, 0.15)
+			task.delay(0.15, function()
+				if tab.activesubpage ~= old then
+					old.container.Visible = false
+				end
+			end)
 		end
 		
 		tab.activesubpage = subpage
@@ -658,6 +680,8 @@ function library:create(cfg)
 		tween(subpage.indicator, {Size = UDim2.new(0, 34, 0, 3)}, 0.25, Enum.EasingStyle.Back)
 		
 		subpage.container.Visible = true
+		subpage.container.GroupTransparency = 1
+		tween(subpage.container, {GroupTransparency = 0}, 0.2)
 		subpage.container.CanvasPosition = Vector2.new(0, 0)
 	end
 	
