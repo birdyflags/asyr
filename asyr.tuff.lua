@@ -1180,7 +1180,7 @@ function library:create(cfg)
 							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
-							ClipsDescendants = true,
+							ClipsDescendants = false, -- Changed to false so Line at -4 is visible if needed
 							Size = UDim2.new(1, 0, 0, 22),
 							BackgroundTransparency = 0,
 							ZIndex = 113,
@@ -1206,12 +1206,13 @@ function library:create(cfg)
 							BackgroundTransparency = 1.000,
 							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
-							Position = UDim2.new(0.025, 0, 0.5, 0),
-							Size = UDim2.new(0, 1, 0, 1),
+							Position = UDim2.new(0, 10, 0.5, 0), -- Adjusted padding
+							Size = UDim2.new(1, -20, 1, 0), -- Fixed Size to fill
 							Font = Enum.Font.Gotham,
 							Text = optName,
 							TextColor3 = Color3.fromRGB(254, 254, 254),
 							TextSize = 13.000,
+							TextXAlignment = Enum.TextXAlignment.Left, -- Ensure left align
 							ZIndex = 114,
 							Parent = itemHolder
 						})
