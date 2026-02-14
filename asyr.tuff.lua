@@ -938,8 +938,7 @@ function library:create(cfg)
 				end
 
 
-				-- Enhanced Dropdown component (Floating, Search, Scroll, Animations)
-				function section:adddropdown(cfg)
+					function section:adddropdown(cfg)
 					cfg = cfg or {}
 					local dname = cfg.name or "Dropdown"
 					local doptions = cfg.options or {"Option 1", "Option 2", "Option 3"}
@@ -955,7 +954,6 @@ function library:create(cfg)
 						value = dmulti and {} or nil,
 						isopen = false,
 						optionframes = {},
-						filteredoptions = doptions,
 						callback = dcallback
 					}
 
@@ -963,7 +961,11 @@ function library:create(cfg)
 						library.flags[dflag] = dropdown.value
 					end
 
-					-- 1. The Header (Button in the Section)
+					local accentgradient = ColorSequence.new{
+						ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 83, 123)),
+						ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 85, 127))
+					}
+
 					local dframe = create("Frame", {
 						Name = dname,
 						BackgroundTransparency = 1,
@@ -971,7 +973,7 @@ function library:create(cfg)
 						Parent = secholder
 					})
 
-					local dlbl = create("TextLabel", {
+					create("TextLabel", {
 						Name = "label",
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0, 25, 0, 12),
@@ -995,18 +997,14 @@ function library:create(cfg)
 						Parent = dframe
 					})
 					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = holder})
-					create("UIStroke", {
-						Color = Color3.fromRGB(28, 30, 38),
-						Thickness = 1,
-						Parent = holder
-					})
+					create("UIStroke", {Color = library.colors.stroke, Parent = holder})
 
 					local valuetext = create("TextLabel", {
 						Name = "value",
 						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundTransparency = 1,
 						Position = UDim2.new(0.025, 0, 0.5, 0),
-						Size = UDim2.new(1, -50, 1, 0),
+						Size = UDim2.new(1, -30, 1, 0),
 						Font = Enum.Font.GothamMedium,
 						Text = "...",
 						TextColor3 = library.colors.accent,
@@ -1015,15 +1013,8 @@ function library:create(cfg)
 						TextTruncate = Enum.TextTruncate.AtEnd,
 						Parent = holder
 					})
-					create("UIGradient", {
-						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-						},
-						Parent = valuetext
-					})
+					create("UIGradient", {Color = accentgradient, Parent = valuetext})
 
-					-- Decorative lines in header
 					local lineLeft = create("Frame", {
 						Name = "lineLeft",
 						AnchorPoint = Vector2.new(0, 0.5),
@@ -1034,13 +1025,7 @@ function library:create(cfg)
 						Parent = holder
 					})
 					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
-					create("UIGradient", {
-						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-						},
-						Parent = lineLeft
-					})
+					create("UIGradient", {Color = accentgradient, Parent = lineLeft})
 
 					local lineRight = create("Frame", {
 						Name = "lineRight",
@@ -1052,13 +1037,7 @@ function library:create(cfg)
 						Parent = holder
 					})
 					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
-					create("UIGradient", {
-						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-						},
-						Parent = lineRight
-					})
+					create("UIGradient", {Color = accentgradient, Parent = lineRight})
 
 					local arrow = create("ImageLabel", {
 						Name = "arrow",
@@ -1080,277 +1059,169 @@ function library:create(cfg)
 						Parent = holder
 					})
 
-					-- 2. The Floating Dropdown List (Parented to GUI)
 					local dropdownList = create("Frame", {
-						Name = "Dropdown",
+						Name = dname .. "_list",
+						AnchorPoint = Vector2.new(0.5, 1),
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
-						BorderColor3 = Color3.fromRGB(0, 0, 0),
 						BorderSizePixel = 0,
 						ClipsDescendants = true,
-						Position = UDim2.new(0, 0, 0, 0),
-						Size = UDim2.new(0, 264, 0, 0), -- Initial size 0
+						Position = UDim2.new(0.5, 0, 1, 0),
+						Size = UDim2.new(0, 1, 0, 1),
 						Visible = false,
-						ZIndex = 110, -- Float higher
-						Parent = window.gui
+						ZIndex = 50,
+						Parent = holder
 					})
-
-					create("UIStroke", {Color = Color3.fromRGB(28, 30, 38), Parent = dropdownList})
+					create("UIStroke", {Color = library.colors.stroke, Parent = dropdownList})
 					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = dropdownList})
+					create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = dropdownList})
 
-					-- Search Bar Container
-					local searchContainer = create("Frame", {
-						Name = "SearchContainer",
-						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 0, 0, 26),
-						Parent = dropdownList
-					})
-					create("UIPadding", {PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), PaddingTop = UDim.new(0, 4), Parent = searchContainer})
-
-					local searchBox = create("TextBox", {
-						Name = "SearchBox",
-						BackgroundColor3 = Color3.fromRGB(30, 31, 38),
-						BorderSizePixel = 0,
-						Size = UDim2.new(1, 0, 1, 0),
-						Font = Enum.Font.Gotham,
-						PlaceholderText = "Search...",
-						PlaceholderColor3 = Color3.fromRGB(100, 100, 110),
-						Text = "",
-						TextColor3 = Color3.fromRGB(200, 200, 200),
-						TextSize = 12,
-						ZIndex = 112,
-						Parent = searchContainer
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = searchBox})
-					create("UIPadding", {PaddingLeft = UDim.new(0, 6), Parent = searchBox})
-
-					-- Scrolling List Container
-					local scrollFrame = create("ScrollingFrame", {
-						Name = "OptionList",
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 0, 0, 28), -- Below search
-						Size = UDim2.new(1, 0, 1, -28),
-						CanvasSize = UDim2.new(0, 0, 0, 0),
-						ScrollBarThickness = 2,
-						ScrollBarImageColor3 = library.colors.accent,
-						AutomaticCanvasSize = Enum.AutomaticSize.Y,
-						ZIndex = 111,
-						Parent = dropdownList
-					})
-					create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = scrollFrame})
-
-					local function updatePosition()
-						if not dropdown.isopen then return end
-						local absPos = holder.AbsolutePosition
-						local absSize = holder.AbsoluteSize
-						dropdownList.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
-						
-						local visibleCount = 0
-						for _, opt in pairs(dropdown.optionframes) do
-							if opt.holder.Visible then
-								visibleCount = visibleCount + 1
-							end
-						end
-						
-						local itemHeight = 22
-						local searchHeight = 28
-						local maxItems = 8 -- Max visible items before scrolling
-						local contentHeight = visibleCount * itemHeight
-						
-						local totalHeight = math.min(contentHeight + searchHeight, (maxItems * itemHeight) + searchHeight)
-						
-						tween(dropdownList, {Size = UDim2.new(0, absSize.X, 0, totalHeight)}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-					end
-
-					local function updateText()
+					local function updatetext()
 						if dmulti then
-							if #dropdown.value > 0 then
-								valuetext.Text = table.concat(dropdown.value, ", ")
-							else
-								valuetext.Text = "..."
-							end
+							valuetext.Text = #dropdown.value > 0 and table.concat(dropdown.value, ", ") or "..."
 						else
 							valuetext.Text = dropdown.value or "..."
 						end
 					end
 
-					local function createOption(optName)
-						-- STRICT HIERARCHY: Holder -> UIStroke, UICorner, Option, Line -> ...
-						local itemHolder = create("Frame", {
+					local function createoption(optname)
+						local itemholder = create("Frame", {
 							Name = "Holder",
 							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
-							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
-							ClipsDescendants = false, -- Changed to false so Line at -4 is visible if needed
+							ClipsDescendants = true,
 							Size = UDim2.new(1, 0, 0, 22),
-							BackgroundTransparency = 0,
-							ZIndex = 113,
-							Parent = scrollFrame
+							ZIndex = 51,
+							Parent = dropdownList
 						})
+						create("UIStroke", {Color = library.colors.stroke, Parent = itemholder})
+						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = itemholder})
 
-						-- Interaction button covering the holder
-						local itemBtn = create("TextButton", {
-							BackgroundTransparency = 1,
-							Size = UDim2.new(1, 0, 1, 0),
-							Text = "",
-							ZIndex = 115,
-							Parent = itemHolder
-						})
-
-						create("UIStroke", {Color = Color3.fromRGB(28, 30, 38), Parent = itemHolder})
-						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = itemHolder})
-
-						local optionText = create("TextLabel", {
+						local optionlbl = create("TextLabel", {
 							Name = "Option",
 							AnchorPoint = Vector2.new(0, 0.5),
-							BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-							BackgroundTransparency = 1.000,
-							BorderColor3 = Color3.fromRGB(0, 0, 0),
-							BorderSizePixel = 0,
-							Position = UDim2.new(0, 10, 0.5, 0), -- Adjusted padding
-							Size = UDim2.new(1, -20, 1, 0), -- Fixed Size to fill
+							BackgroundTransparency = 1,
+							Position = UDim2.new(0.025, 0, 0.5, 0),
+							Size = UDim2.new(0, 1, 0, 1),
 							Font = Enum.Font.Gotham,
-							Text = optName,
-							TextColor3 = Color3.fromRGB(254, 254, 254),
-							TextSize = 13.000,
-							TextXAlignment = Enum.TextXAlignment.Left, -- Ensure left align
-							ZIndex = 114,
-							Parent = itemHolder
+							Text = optname,
+							TextColor3 = Color3.fromRGB(255, 255, 255),
+							TextSize = 13,
+							ZIndex = 52,
+							Parent = itemholder
 						})
 
 						local line = create("Frame", {
 							Name = "Line",
 							AnchorPoint = Vector2.new(0, 0.5),
 							BackgroundColor3 = Color3.fromRGB(254, 254, 254),
-							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
 							Position = UDim2.new(0, -4, 0.5, 0),
-							Size = UDim2.new(0, 6, 0, 13),
-							Visible = false, -- Default hidden
-							ZIndex = 115,
-							Parent = itemHolder
+							Size = UDim2.new(0, 0, 0, 13),
+							ZIndex = 53,
+							Parent = itemholder
 						})
-
 						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
-						local gradient = create("UIGradient", {
-							Color = ColorSequence.new{
-								ColorSequenceKeypoint.new(0.00, Color3.fromRGB(30, 83, 123)),
-								ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 85, 127))
-							},
-							Parent = line
+						create("UIGradient", {Color = accentgradient, Parent = line})
+
+						local itembtn = create("TextButton", {
+							BackgroundTransparency = 1,
+							Size = UDim2.new(1, 0, 1, 0),
+							Text = "",
+							ZIndex = 54,
+							Parent = itemholder
 						})
 
-						-- Option State
-						local optData = {
-							name = optName,
-							holder = itemHolder,
-							text = optionText,
+						local optdata = {
+							name = optname,
+							holder = itemholder,
+							text = optionlbl,
 							line = line,
 							selected = false
 						}
 
-						local function updateState(selected)
-							optData.selected = selected
+						local function setselected(selected)
+							optdata.selected = selected
 							if selected then
-								if not optionText:FindFirstChild("TextGradient") then
-									local tg = gradient:Clone()
-									tg.Name = "TextGradient"
-									tg.Parent = optionText
+								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.98}, 0.15)
+								tween(optionlbl, {TextColor3 = Color3.fromRGB(254, 254, 254)}, 0.15)
+								if not optionlbl:FindFirstChildOfClass("UIGradient") then
+									create("UIGradient", {Color = accentgradient, Parent = optionlbl})
 								end
-								optionText.TextColor3 = Color3.fromRGB(255, 255, 255)
-								line.Visible = true
+								tween(line, {Size = UDim2.new(0, 6, 0, 13)}, 0.2)
 							else
-								if optionText:FindFirstChild("TextGradient") then
-									optionText.TextGradient:Destroy()
-								end
-								optionText.TextColor3 = Color3.fromRGB(254, 254, 254)
-								line.Visible = false
+								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32), BackgroundTransparency = 0}, 0.15)
+								tween(optionlbl, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.15)
+								local grad = optionlbl:FindFirstChildOfClass("UIGradient")
+								if grad then grad:Destroy() end
+								tween(line, {Size = UDim2.new(0, 0, 0, 13)}, 0.15)
 							end
 						end
-						
-						-- Hover Animation
-						itemBtn.MouseEnter:Connect(function()
-							if not optData.selected then
-								tween(itemHolder, {BackgroundColor3 = Color3.fromRGB(30, 32, 40)}, 0.15)
-							end
-						end)
-						
-						itemBtn.MouseLeave:Connect(function()
-							if not optData.selected then
-								tween(itemHolder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
+
+						itembtn.MouseEnter:Connect(function()
+							if not optdata.selected then
+								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(30, 32, 40)}, 0.15)
 							end
 						end)
 
-						itemBtn.MouseButton1Click:Connect(function()
+						itembtn.MouseLeave:Connect(function()
+							if not optdata.selected then
+								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
+							end
+						end)
+
+						itembtn.MouseButton1Click:Connect(function()
 							if dmulti then
-								if table.find(dropdown.value, optName) then
-									for i, v in ipairs(dropdown.value) do
-										if v == optName then
-											table.remove(dropdown.value, i)
-											break
-										end
-									end
-									updateState(false)
+								local idx = table.find(dropdown.value, optname)
+								if idx then
+									table.remove(dropdown.value, idx)
+									setselected(false)
 								else
-									table.insert(dropdown.value, optName)
-									updateState(true)
+									table.insert(dropdown.value, optname)
+									setselected(true)
 								end
 							else
-								dropdown.value = optName
+								dropdown.value = optname
 								for _, other in pairs(dropdown.optionframes) do
-									other.update(false)
+									other.setselected(false)
 								end
-								updateState(true)
-								dropdown:toggle() -- Close on single select
+								setselected(true)
+								dropdown:toggle()
 							end
-							
-							if dflag then
-								library.flags[dflag] = dropdown.value
-							end
-							
-							updateText()
+
+							if dflag then library.flags[dflag] = dropdown.value end
+							updatetext()
 							task.spawn(function()
 								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
 							end)
 						end)
 
-						optData.update = updateState
-						dropdown.optionframes[optName] = optData
-						return optData
+						optdata.setselected = setselected
+						dropdown.optionframes[optname] = optdata
+						return optdata
 					end
 
-					-- Search Logic
-					searchBox:GetPropertyChangedSignal("Text"):Connect(function()
-						local input = searchBox.Text:lower()
-						for name, opt in pairs(dropdown.optionframes) do
-							if input == "" or string.find(name:lower(), input, 1, true) then
-								opt.holder.Visible = true
-							else
-								opt.holder.Visible = false
-							end
-						end
-						updatePosition()
-					end)
-
-					-- Create Initial Options
 					for _, opt in ipairs(doptions) do
-						createOption(opt)
+						createoption(opt)
 					end
 
-					-- Toggle Logic
+					local maxvisible = 6
+					local itemheight = 22
+
 					function dropdown:toggle()
 						dropdown.isopen = not dropdown.isopen
 						if dropdown.isopen then
 							dropdownList.Visible = true
-							updatePosition()
-							tween(arrow, {Rotation = 180}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+							local count = 0
+							for _ in pairs(dropdown.optionframes) do count = count + 1 end
+							local targetheight = math.min(count, maxvisible) * itemheight
+							tween(dropdownList, {Size = UDim2.new(1, 0, 0, targetheight)}, 0.25)
+							tween(arrow, {Rotation = 180}, 0.25)
 						else
-							-- Close animation
-							tween(dropdownList, ({Size = UDim2.new(0, holder.AbsoluteSize.X, 0, 0)}), 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-							tween(arrow, {Rotation = 0}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+							tween(dropdownList, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+							tween(arrow, {Rotation = 0}, 0.25)
 							task.delay(0.2, function()
 								if not dropdown.isopen then
 									dropdownList.Visible = false
-									searchBox.Text = "" -- Clear search on close
 								end
 							end)
 						end
@@ -1360,63 +1231,37 @@ function library:create(cfg)
 						dropdown:toggle()
 					end)
 
-					-- Scroll Update & Drag alignment match
-					page:GetPropertyChangedSignal("CanvasPosition"):Connect(function() if dropdown.isopen then updatePosition() end end)
-					main:GetPropertyChangedSignal("Position"):Connect(function() if dropdown.isopen then updatePosition() end end)
-
-					-- Click Outside to Close
 					userinput.InputBegan:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton1 then
-							if dropdown.isopen then
-								local mousePos = userinput:GetMouseLocation()
-								local listPos = dropdownList.AbsolutePosition
-								local listSize = dropdownList.AbsoluteSize
-								local holderPos = holder.AbsolutePosition
-								local holderSize = holder.AbsoluteSize
+						if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.isopen then
+							local mouse = userinput:GetMouseLocation()
+							local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
+							local lpos, lsize = dropdownList.AbsolutePosition, dropdownList.AbsoluteSize
 
-								local inList = mousePos.X >= listPos.X and mousePos.X <= listPos.X + listSize.X and
-											   mousePos.Y >= listPos.Y and mousePos.Y <= listPos.Y + listSize.Y
-								
-								local inHolder = mousePos.X >= holderPos.X and mousePos.X <= holderPos.X + holderSize.X and
-												 mousePos.Y >= holderPos.Y and mousePos.Y <= holderPos.Y + holderSize.Y
+							local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
+							local inlist = mouse.X >= lpos.X and mouse.X <= lpos.X + lsize.X and mouse.Y >= lpos.Y and mouse.Y <= lpos.Y + lsize.Y
 
-								if not inList and not inHolder then
-									dropdown:toggle()
-								end
+							if not inholder and not inlist then
+								dropdown:toggle()
 							end
 						end
 					end)
 
-					-- Public Methods
 					function dropdown:set(val, nocallback)
 						if dmulti then
 							if type(val) == "table" then
 								dropdown.value = val
-								for _, opt in pairs(dropdown.optionframes) do
-									opt.update(false)
-								end
+								for _, opt in pairs(dropdown.optionframes) do opt.setselected(false) end
 								for _, v in ipairs(val) do
-									if dropdown.optionframes[v] then
-										dropdown.optionframes[v].update(true)
-									end
+									if dropdown.optionframes[v] then dropdown.optionframes[v].setselected(true) end
 								end
 							end
 						else
 							dropdown.value = val
-							for _, opt in pairs(dropdown.optionframes) do
-								opt.update(false)
-							end
-							if dropdown.optionframes[val] then
-								dropdown.optionframes[val].update(true)
-							end
+							for _, opt in pairs(dropdown.optionframes) do opt.setselected(false) end
+							if dropdown.optionframes[val] then dropdown.optionframes[val].setselected(true) end
 						end
-						
-						updateText()
-						
-						if dflag then
-							library.flags[dflag] = dropdown.value
-						end
-						
+						updatetext()
+						if dflag then library.flags[dflag] = dropdown.value end
 						if not nocallback then
 							task.spawn(function()
 								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
@@ -1424,24 +1269,16 @@ function library:create(cfg)
 						end
 					end
 
-					function dropdown:refresh(newOptions)
-						for _, v in pairs(dropdown.optionframes) do
-							v.holder:Destroy()
-						end
+					function dropdown:refresh(newoptions)
+						for _, v in pairs(dropdown.optionframes) do v.holder:Destroy() end
 						dropdown.optionframes = {}
-						dropdown.options = newOptions
+						dropdown.options = newoptions
 						dropdown.value = dmulti and {} or nil
-						
-						for _, opt in ipairs(newOptions) do
-							createOption(opt)
-						end
-						updateText()
+						for _, opt in ipairs(newoptions) do createoption(opt) end
+						updatetext()
 					end
 
-					-- Set Default
-					if ddefault then
-						dropdown:set(ddefault, true)
-					end
+					if ddefault then dropdown:set(ddefault, true) end
 
 					table.insert(section.elements, dropdown)
 					return dropdown
