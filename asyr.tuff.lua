@@ -938,7 +938,7 @@ function library:create(cfg)
 				end
 
 
-				-- New Dropdown component (single/multi select) - Expanding Style
+				-- Dropdown component (Floating, Strict Hierarchy)
 				function section:adddropdown(cfg)
 					cfg = cfg or {}
 					local dname = cfg.name or "Dropdown"
@@ -959,129 +959,227 @@ function library:create(cfg)
 					}
 
 					if dflag then
-						 library.flags[dflag] = dropdown.value
+						library.flags[dflag] = dropdown.value
 					end
 
-					-- Main container frame
+					-- 1. The Header (Button in the Section)
 					local dframe = create("Frame", {
 						Name = dname,
 						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 0, 0, 34), -- Initial height (header only)
-						ClipsDescendants = true,
+						Size = UDim2.new(1, 0, 0, 55),
 						Parent = secholder
 					})
 
-					-- Layout for the dropdown (Header + Options)
-					local dlayout = create("UIListLayout", {
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 4),
+					local dlbl = create("TextLabel", {
+						Name = "label",
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 25, 0, 12),
+						Size = UDim2.new(0, 1, 0, 1),
+						Font = Enum.Font.Gotham,
+						Text = dname,
+						TextColor3 = Color3.fromRGB(204, 204, 209),
+						TextSize = 12,
+						TextXAlignment = Enum.TextXAlignment.Left,
 						Parent = dframe
 					})
 
-					-- Header Frame (The clickable top part)
-					local header = create("Frame", {
-						Name = "header",
+					local holder = create("Frame", {
+						Name = "holder",
+						AnchorPoint = Vector2.new(0.5, 1),
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 						BorderSizePixel = 0,
-						Size = UDim2.new(1, 0, 0, 30),
+						ClipsDescendants = true,
+						Position = UDim2.new(0.5, 0, 1, 0),
+						Size = UDim2.new(1, -46, 0, 22),
 						Parent = dframe
 					})
-					create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = header})
+					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = holder})
 					create("UIStroke", {
 						Color = Color3.fromRGB(28, 30, 38),
 						Thickness = 1,
-						Parent = header
+						Parent = holder
 					})
 
-					local headerLabel = create("TextLabel", {
-						Name = "label",
+					local valuetext = create("TextLabel", {
+						Name = "value",
 						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 10, 0.5, 0),
-						Size = UDim2.new(1, -30, 1, 0),
+						Position = UDim2.new(0.025, 0, 0.5, 0),
+						Size = UDim2.new(1, -50, 1, 0),
 						Font = Enum.Font.GothamMedium,
-						Text = dname,
-						TextColor3 = library.colors.text,
+						Text = "...",
+						TextColor3 = library.colors.accent,
 						TextSize = 13,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						TextTruncate = Enum.TextTruncate.AtEnd,
-						Parent = header
+						Parent = holder
+					})
+					create("UIGradient", {
+						Color = ColorSequence.new{
+							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
+							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
+						},
+						Parent = valuetext
 					})
 
-					local chevron = create("ImageLabel", {
-						Name = "chevron",
+					-- Decorative lines in header
+					local lineLeft = create("Frame", {
+						Name = "lineLeft",
+						AnchorPoint = Vector2.new(0, 0.5),
+						BackgroundColor3 = library.colors.accent,
+						BorderSizePixel = 0,
+						Position = UDim2.new(0, -4, 0.5, 0),
+						Size = UDim2.new(0, 6, 0, 13),
+						Parent = holder
+					})
+					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
+					create("UIGradient", {
+						Color = ColorSequence.new{
+							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
+							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
+						},
+						Parent = lineLeft
+					})
+
+					local lineRight = create("Frame", {
+						Name = "lineRight",
+						AnchorPoint = Vector2.new(1, 0.5),
+						BackgroundColor3 = library.colors.accent,
+						BorderSizePixel = 0,
+						Position = UDim2.new(1, 4, 0.5, 0),
+						Size = UDim2.new(0, 6, 0, 13),
+						Parent = holder
+					})
+					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
+					create("UIGradient", {
+						Color = ColorSequence.new{
+							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
+							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
+						},
+						Parent = lineRight
+					})
+
+					local arrow = create("ImageLabel", {
+						Name = "arrow",
 						AnchorPoint = Vector2.new(1, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(1, -8, 0.5, 0),
-						Size = UDim2.new(0, 14, 0, 14),
-						Image = "rbxassetid://6031091004", -- Chevron Up/Down
-						ImageColor3 = library.colors.subtext,
+						Position = UDim2.new(1, -6, 0.5, 0),
+						Size = UDim2.new(0, 12, 0, 12),
+						Image = "rbxassetid://6031091004",
+						ImageColor3 = Color3.fromRGB(141, 141, 150),
 						Rotation = 0,
-						Parent = header
+						Parent = holder
 					})
 
-					local headerBtn = create("TextButton", {
+					local holderBtn = create("TextButton", {
 						BackgroundTransparency = 1,
 						Size = UDim2.new(1, 0, 1, 0),
 						Text = "",
-						Parent = header
+						ZIndex = 2,
+						Parent = holder
 					})
 
-					-- Function to calculate total height
-					local function calculateHeight()
-						local count = #doptions
-						local spacing = 4 -- padding
-						local optionHeight = 26
-						local headerHeight = 30
-						local total = headerHeight + (count * (optionHeight + spacing)) + spacing
-						return total
+					-- 2. The Floating Dropdown List (Parented to GUI)
+					-- Strict hierarchy: Dropdown -> UIStroke, UICorner, UIListLayout -> Holder -> ...
+					local dropdownList = create("Frame", {
+						Name = "Dropdown",
+						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
+						BorderColor3 = Color3.fromRGB(0, 0, 0),
+						BorderSizePixel = 0,
+						ClipsDescendants = true,
+						Position = UDim2.new(0, 0, 0, 0),
+						Size = UDim2.new(0, 264, 0, 0), -- Initial size 0
+						Visible = false,
+						ZIndex = 100, -- Float above everything
+						Parent = window.gui
+					})
+
+					create("UIStroke", {Color = Color3.fromRGB(28, 30, 38), Parent = dropdownList})
+					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = dropdownList})
+					create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = dropdownList})
+
+					local function updatePosition()
+						if not dropdown.isopen then return end
+						local absPos = holder.AbsolutePosition
+						local absSize = holder.AbsoluteSize
+						dropdownList.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
+						dropdownList.Size = UDim2.new(0, absSize.X, 0, #doptions * 22) -- 22px per item
 					end
 
-					-- Option creation
-					local function createoption(optname, index)
-						local optcontainer = create("Frame", {
-							Name = optname,
-							BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-							BackgroundTransparency = 0.98,
+					local function updateText()
+						if dmulti then
+							if #dropdown.value > 0 then
+								valuetext.Text = table.concat(dropdown.value, ", ")
+							else
+								valuetext.Text = "..."
+							end
+						else
+							valuetext.Text = dropdown.value or "..."
+						end
+					end
+
+					local function createOption(optName)
+						-- STRICT HIERARCHY: Holder -> UIStroke, UICorner, Option, Line -> ...
+						local itemHolder = create("Frame", {
+							Name = "Holder",
+							BackgroundColor3 = Color3.fromRGB(24, 25, 32), -- Matches dropdown bg
+							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
-							Size = UDim2.new(1, 0, 0, 26),
-							LayoutOrder = index,
-							Parent = dframe
-						})
-						create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = optcontainer})
-						create("UIStroke", {
-							Color = Color3.fromRGB(28, 30, 38),
-							Thickness = 1,
-							Parent = optcontainer
+							ClipsDescendants = true,
+							Size = UDim2.new(1, 0, 0, 22),
+							BackgroundTransparency = 0, -- As per user snippet it seems opaque or semi-transparent
+							ZIndex = 101,
+							Parent = dropdownList
 						})
 
-						local opttext = create("TextLabel", {
+						-- In user code, Holder has transparent background in second example, but dark in first.
+						-- Assuming we want it to blend or stand out. Let's stick to the styling provided in the standard item.
+						itemHolder.BackgroundColor3 = Color3.fromRGB(24, 25, 32) 
+						
+						-- Interaction button covering the holder
+						local itemBtn = create("TextButton", {
+							BackgroundTransparency = 1,
+							Size = UDim2.new(1, 0, 1, 0),
+							Text = "",
+							ZIndex = 105,
+							Parent = itemHolder
+						})
+
+						create("UIStroke", {Color = Color3.fromRGB(28, 30, 38), Parent = itemHolder})
+						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = itemHolder})
+
+						local optionText = create("TextLabel", {
 							Name = "Option",
 							AnchorPoint = Vector2.new(0, 0.5),
-							BackgroundTransparency = 1,
-							Position = UDim2.new(0, 10, 0.5, 0),
-							Size = UDim2.new(1, -20, 1, 0),
-							Font = Enum.Font.Gotham,
-							Text = optname,
-							TextColor3 = Color3.fromRGB(254, 254, 254), -- Default text
-							TextSize = 13,
-							TextXAlignment = Enum.TextXAlignment.Left,
-							Parent = optcontainer
+							BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+							BackgroundTransparency = 1.000,
+							BorderColor3 = Color3.fromRGB(0, 0, 0),
+							BorderSizePixel = 0,
+							Position = UDim2.new(0.025, 0, 0.5, 0),
+							Size = UDim2.new(0, 1, 0, 1),
+							Font = Enum.Font.Gotham, -- User had Unknown, defaulting to Gotham
+							Text = optName,
+							TextColor3 = Color3.fromRGB(254, 254, 254),
+							TextSize = 13.000,
+							ZIndex = 102,
+							Parent = itemHolder
 						})
 
-						-- The gradient line for selected state
 						local line = create("Frame", {
 							Name = "Line",
 							AnchorPoint = Vector2.new(0, 0.5),
 							BackgroundColor3 = Color3.fromRGB(254, 254, 254),
+							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
 							Position = UDim2.new(0, -4, 0.5, 0),
 							Size = UDim2.new(0, 6, 0, 13),
-							Visible = false, -- Hidden by default
-							Parent = optcontainer
+							Visible = false, -- Default hidden
+							ZIndex = 103,
+							Parent = itemHolder
 						})
+
 						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
-						create("UIGradient", {
+						local gradient = create("UIGradient", {
 							Color = ColorSequence.new{
 								ColorSequenceKeypoint.new(0.00, Color3.fromRGB(30, 83, 123)),
 								ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 85, 127))
@@ -1089,142 +1187,176 @@ function library:create(cfg)
 							Parent = line
 						})
 
-						local optbtn = create("TextButton", {
-							BackgroundTransparency = 1,
-							Size = UDim2.new(1, 0, 1, 0),
-							Text = "",
-							Parent = optcontainer
-						})
-
-						-- Option State Management
-						local optdata = {
-							instance = optcontainer,
+						-- Option State
+						local optData = {
+							name = optName,
+							holder = itemHolder,
+							text = optionText,
 							line = line,
-							text = opttext,
-							name = optname,
 							selected = false
 						}
 
 						local function updateState(selected)
-							optdata.selected = selected
+							optData.selected = selected
 							if selected then
-								tween(opttext, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2)
+								-- User snippet: "Option_2" (Selected) has UIGradient on text? 
+								-- User snippet shows UIGradient parented to Option_2.
+								-- Let's apply gradient to text if selected, or just white. 
+								-- User code: Option_2 TextColor3 is 254,254,254. UIGradient is child.
+								-- So text becomes gradient.
+								
+								-- Check if we need specific gradient on text:
+								-- User snippet: Option_2 (Selected) -> UIGradient.
+								-- We will simulate this by ensuring we have a gradient ready or creating one.
+								if not optionText:FindFirstChild("TextGradient") then
+									local tg = gradient:Clone()
+									tg.Name = "TextGradient"
+									tg.Parent = optionText
+								end
+								optionText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Gradient controls color
+								
 								line.Visible = true
-								-- Optional: Tween line transparency if needed, but Visible toggle is sharper
 							else
-								tween(opttext, {TextColor3 = Color3.fromRGB(150, 150, 150)}, 0.2)
+								if optionText:FindFirstChild("TextGradient") then
+									optionText.TextGradient:Destroy()
+								end
+								optionText.TextColor3 = Color3.fromRGB(254, 254, 254)
 								line.Visible = false
 							end
 						end
 
-						optbtn.MouseButton1Click:Connect(function()
+						itemBtn.MouseButton1Click:Connect(function()
 							if dmulti then
-								-- Multi Select
-								if table.find(dropdown.value, optname) then
-									-- Remove
+								if table.find(dropdown.value, optName) then
 									for i, v in ipairs(dropdown.value) do
-										if v == optname then
+										if v == optName then
 											table.remove(dropdown.value, i)
 											break
 										end
 									end
 									updateState(false)
 								else
-									-- Add
-									table.insert(dropdown.value, optname)
+									table.insert(dropdown.value, optName)
 									updateState(true)
 								end
-								-- Update header text for multi
-								if #dropdown.value > 0 then
-									headerLabel.Text = dname .. ": " .. table.concat(dropdown.value, ", ")
-								else
-									headerLabel.Text = dname
-								end
 							else
-								-- Single Select
-								dropdown.value = optname
-								-- Deselect all others
+								dropdown.value = optName
 								for _, other in pairs(dropdown.optionframes) do
-									if other ~= optdata then
-										other.update(false)
-									end
+									other.update(false)
 								end
 								updateState(true)
-								headerLabel.Text = dname .. ": " .. optname
-								-- Close on selection
-								dropdown:toggle()
+								dropdown:toggle() -- Close on single select
 							end
-
+							
 							if dflag then
 								library.flags[dflag] = dropdown.value
 							end
+							
+							updateText()
 							task.spawn(function()
 								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
 							end)
 						end)
 
-						optdata.update = updateState
-						-- Initialize unselected state visuals
-						updateState(false)
-						
-						dropdown.optionframes[optname] = optdata
+						optData.update = updateState
+						dropdown.optionframes[optName] = optData
+						return optData
 					end
 
-					-- Initialize Options
-					for i, opt in ipairs(doptions) do
-						createoption(opt, i + 1) -- i+1 because header is 1
+					-- Create Initial Options
+					for _, opt in ipairs(doptions) do
+						createOption(opt)
 					end
 
-					-- Open/Close Logic
+					-- Toggle Logic
 					function dropdown:toggle()
 						dropdown.isopen = not dropdown.isopen
 						if dropdown.isopen then
-							local h = calculateHeight()
-							tween(dframe, {Size = UDim2.new(1, 0, 0, h)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-							tween(chevron, {Rotation = 180}, 0.2)
+							dropdownList.Visible = true
+							updatePosition()
 						else
-							tween(dframe, {Size = UDim2.new(1, 0, 0, 34)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-							tween(chevron, {Rotation = 0}, 0.2)
+							dropdownList.Visible = false
+						end
+						
+						-- Arrow Rotation
+						if dropdown.isopen then
+							tween(arrow, {Rotation = 180}, 0.2)
+						else
+							tween(arrow, {Rotation = 0}, 0.2)
 						end
 					end
 
+					holderBtn.MouseButton1Click:Connect(function()
+						dropdown:toggle()
+					end)
+
+					-- Scroll Update
+					page:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+						if dropdown.isopen then
+							updatePosition()
+						end
+					end)
+					
+					-- Drag Update (Window Move)
+					main:GetPropertyChangedSignal("Position"):Connect(function()
+						if dropdown.isopen then
+							updatePosition()
+						end
+					end)
+
+					-- Click Outside to Close
+					userinput.InputBegan:Connect(function(input)
+						if input.UserInputType == Enum.UserInputType.MouseButton1 then
+							if dropdown.isopen then
+								local mousePos = userinput:GetMouseLocation()
+								local listPos = dropdownList.AbsolutePosition
+								local listSize = dropdownList.AbsoluteSize
+								local holderPos = holder.AbsolutePosition
+								local holderSize = holder.AbsoluteSize
+
+								local inList = mousePos.X >= listPos.X and mousePos.X <= listPos.X + listSize.X and
+											   mousePos.Y >= listPos.Y and mousePos.Y <= listPos.Y + listSize.Y
+								
+								local inHolder = mousePos.X >= holderPos.X and mousePos.X <= holderPos.X + holderSize.X and
+												 mousePos.Y >= holderPos.Y and mousePos.Y <= holderPos.Y + holderSize.Y
+
+								if not inList and not inHolder then
+									dropdown:toggle()
+								end
+							end
+						end
+					end)
+
+					-- Public Methods
 					function dropdown:set(val, nocallback)
 						if dmulti then
 							if type(val) == "table" then
 								dropdown.value = val
-								-- Reset all
 								for _, opt in pairs(dropdown.optionframes) do
 									opt.update(false)
 								end
-								-- Set new
 								for _, v in ipairs(val) do
 									if dropdown.optionframes[v] then
 										dropdown.optionframes[v].update(true)
 									end
 								end
-								if #dropdown.value > 0 then
-									headerLabel.Text = dname .. ": " .. table.concat(dropdown.value, ", ")
-								else
-									headerLabel.Text = dname
-								end
 							end
 						else
+							dropdown.value = val
+							for _, opt in pairs(dropdown.optionframes) do
+								opt.update(false)
+							end
 							if dropdown.optionframes[val] then
-								dropdown.value = val
-								-- Deselect all
-								for _, opt in pairs(dropdown.optionframes) do
-									opt.update(false)
-								end
-								-- Select one
 								dropdown.optionframes[val].update(true)
-								headerLabel.Text = dname .. ": " .. val
 							end
 						end
+						
+						updateText()
 						
 						if dflag then
 							library.flags[dflag] = dropdown.value
 						end
-
+						
 						if not nocallback then
 							task.spawn(function()
 								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
@@ -1232,39 +1364,21 @@ function library:create(cfg)
 						end
 					end
 
-					function dropdown:refresh(newoptions)
-						-- Clear old options
-						for _, opt in pairs(dropdown.optionframes) do
-							opt.instance:Destroy()
+					function dropdown:refresh(newOptions)
+						for _, v in pairs(dropdown.optionframes) do
+							v.holder:Destroy()
 						end
 						dropdown.optionframes = {}
-						doptions = newoptions
-						dropdown.options = newoptions
-
-						-- Reset value
-						if dmulti then
-							dropdown.value = {}
-						else
-							dropdown.value = nil
-						end
-						headerLabel.Text = dname
-
-						-- Create new options
-						for i, opt in ipairs(newoptions) do
-							createoption(opt, i + 1)
-						end
+						dropdown.options = newOptions
+						dropdown.value = dmulti and {} or nil
 						
-						-- Close if open to resize correctly next time
-						if dropdown.isopen then
-							dropdown:toggle()
+						for _, opt in ipairs(newOptions) do
+							createOption(opt)
 						end
+						updateText()
 					end
 
-					headerBtn.MouseButton1Click:Connect(function()
-						dropdown:toggle()
-					end)
-
-					-- Set default if exists
+					-- Set Default
 					if ddefault then
 						dropdown:set(ddefault, true)
 					end
