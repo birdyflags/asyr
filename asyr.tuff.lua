@@ -3,6 +3,7 @@ local userinput = game:GetService("UserInputService")
 local marketplace = game:GetService("MarketplaceService")
 local players = game:GetService("Players")
 
+local table = table -- Localize for performance and to prevent shadowing
 local library = {}
 library.colors = {
 	accent = Color3.fromRGB(13, 155, 255),
@@ -936,7 +937,8 @@ function library:create(cfg)
 					return slider
 				end
 
-				-- Dropdown component (single/multi select) - Mentality style + hi.txt design
+
+				-- New Dropdown component (single/multi select) - Expanding Style
 				function section:adddropdown(cfg)
 					cfg = cfg or {}
 					local dname = cfg.name or "Dropdown"
@@ -957,426 +959,272 @@ function library:create(cfg)
 					}
 
 					if dflag then
-						library.flags[dflag] = dropdown.value
+						 library.flags[dflag] = dropdown.value
 					end
 
-					-- Main dropdown frame - 55px height like hi.txt
+					-- Main container frame
 					local dframe = create("Frame", {
 						Name = dname,
 						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 0, 0, 55),
-						ClipsDescendants = false,
+						Size = UDim2.new(1, 0, 0, 34), -- Initial height (header only)
+						ClipsDescendants = true,
 						Parent = secholder
 					})
 
-					-- Label at top
-					local dlbl = create("TextLabel", {
-						Name = "label",
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 25, 0, 12),
-						Size = UDim2.new(0, 1, 0, 1),
-						Font = Enum.Font.Gotham,
-						Text = dname,
-						TextColor3 = Color3.fromRGB(204, 204, 209),
-						TextSize = 12,
-						TextXAlignment = Enum.TextXAlignment.Left,
+					-- Layout for the dropdown (Header + Options)
+					local dlayout = create("UIListLayout", {
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						Padding = UDim.new(0, 4),
 						Parent = dframe
 					})
 
-					-- Holder box - the clickable dropdown area
-					local holder = create("Frame", {
-						Name = "holder",
-						AnchorPoint = Vector2.new(0.5, 1),
+					-- Header Frame (The clickable top part)
+					local header = create("Frame", {
+						Name = "header",
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 						BorderSizePixel = 0,
-						ClipsDescendants = true,
-						Position = UDim2.new(0.5, 0, 1, 0),
-						Size = UDim2.new(1, -46, 0, 22),
+						Size = UDim2.new(1, 0, 0, 30),
 						Parent = dframe
 					})
-					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = holder})
+					create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = header})
 					create("UIStroke", {
 						Color = Color3.fromRGB(28, 30, 38),
 						Thickness = 1,
-						Parent = holder
+						Parent = header
 					})
 
-					-- Selected value text with gradient
-					local valuetext = create("TextLabel", {
-						Name = "value",
+					local headerLabel = create("TextLabel", {
+						Name = "label",
 						AnchorPoint = Vector2.new(0, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(0.025, 0, 0.5, 0),
-						Size = UDim2.new(1, -50, 1, 0),
+						Position = UDim2.new(0, 10, 0.5, 0),
+						Size = UDim2.new(1, -30, 1, 0),
 						Font = Enum.Font.GothamMedium,
-						Text = "...",
-						TextColor3 = library.colors.accent,
+						Text = dname,
+						TextColor3 = library.colors.text,
 						TextSize = 13,
 						TextXAlignment = Enum.TextXAlignment.Left,
 						TextTruncate = Enum.TextTruncate.AtEnd,
-						Parent = holder
-					})
-					create("UIGradient", {
-						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-						},
-						Parent = valuetext
+						Parent = header
 					})
 
-					-- Left accent line
-					local lineLeft = create("Frame", {
-						Name = "lineLeft",
-						AnchorPoint = Vector2.new(0, 0.5),
-						BackgroundColor3 = library.colors.accent,
-						BorderSizePixel = 0,
-						Position = UDim2.new(0, -4, 0.5, 0),
-						Size = UDim2.new(0, 6, 0, 13),
-						Parent = holder
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
-					create("UIGradient", {
-						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-						},
-						Parent = lineLeft
-					})
-
-					-- Right accent line
-					local lineRight = create("Frame", {
-						Name = "lineRight",
-						AnchorPoint = Vector2.new(1, 0.5),
-						BackgroundColor3 = library.colors.accent,
-						BorderSizePixel = 0,
-						Position = UDim2.new(1, 4, 0.5, 0),
-						Size = UDim2.new(0, 6, 0, 13),
-						Parent = holder
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
-					create("UIGradient", {
-						Color = ColorSequence.new{
-							ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-							ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-						},
-						Parent = lineRight
-					})
-
-					-- Arrow icon
-					local arrow = create("ImageLabel", {
-						Name = "arrow",
+					local chevron = create("ImageLabel", {
+						Name = "chevron",
 						AnchorPoint = Vector2.new(1, 0.5),
 						BackgroundTransparency = 1,
-						Position = UDim2.new(1, -6, 0.5, 0),
-						Size = UDim2.new(0, 12, 0, 12),
-						Image = "rbxassetid://6031091004",
-						ImageColor3 = Color3.fromRGB(141, 141, 150),
+						Position = UDim2.new(1, -8, 0.5, 0),
+						Size = UDim2.new(0, 14, 0, 14),
+						Image = "rbxassetid://6031091004", -- Chevron Up/Down
+						ImageColor3 = library.colors.subtext,
 						Rotation = 0,
-						Parent = holder
+						Parent = header
 					})
 
-					-- Click button
-					local holderBtn = create("TextButton", {
+					local headerBtn = create("TextButton", {
 						BackgroundTransparency = 1,
 						Size = UDim2.new(1, 0, 1, 0),
 						Text = "",
-						ZIndex = 2,
-						Parent = holder
+						Parent = header
 					})
 
-					-- Option holder (dropdown list) - appears in the GUI root for proper layering
-					local optionholder = create("Frame", {
-						Name = "optionholder",
-						BackgroundColor3 = Color3.fromRGB(20, 21, 26),
-						BorderSizePixel = 0,
-						ClipsDescendants = true,
-						Position = UDim2.new(0, 0, 0, 0),
-						Size = UDim2.new(0, 0, 0, 0),
-						Visible = false,
-						ZIndex = 50,
-						Parent = tab.window.gui
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = optionholder})
-					create("UIStroke", {
-						Color = Color3.fromRGB(35, 36, 45),
-						Thickness = 1,
-						Parent = optionholder
-					})
-
-					local optionscroll = create("ScrollingFrame", {
-						Name = "scroll",
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 6, 0, 6),
-						Size = UDim2.new(1, -12, 1, -12),
-						ScrollBarImageColor3 = library.colors.accent,
-						ScrollBarThickness = 2,
-						CanvasSize = UDim2.new(0, 0, 0, 0),
-						AutomaticCanvasSize = Enum.AutomaticSize.Y,
-						ZIndex = 51,
-						Parent = optionholder
-					})
-					create("UIListLayout", {
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						Padding = UDim.new(0, 2),
-						Parent = optionscroll
-					})
-
-					local function updateposition()
-						if not dropdown.isopen then return end
-						local abspos = holder.AbsolutePosition
-						local abssize = holder.AbsoluteSize
-						optionholder.Position = UDim2.new(0, abspos.X, 0, abspos.Y + abssize.Y + 4)
-						optionholder.Size = UDim2.new(0, abssize.X, 0, math.min(#doptions * 24 + 12, 150))
+					-- Function to calculate total height
+					local function calculateHeight()
+						local count = #doptions
+						local spacing = 4 -- padding
+						local optionHeight = 26
+						local headerHeight = 30
+						local total = headerHeight + (count * (optionHeight + spacing)) + spacing
+						return total
 					end
 
-					local function updatetext()
-						if dmulti then
-							if #dropdown.value > 0 then
-								valuetext.Text = table.concat(dropdown.value, ", ")
-							else
-								valuetext.Text = "..."
-							end
-						else
-							valuetext.Text = dropdown.value or "..."
-						end
-					end
-
-					-- Create option buttons
-					local function createoption(optname)
-						local optbtn = create("Frame", {
+					-- Option creation
+					local function createoption(optname, index)
+						local optcontainer = create("Frame", {
 							Name = optname,
-							BackgroundColor3 = Color3.fromRGB(30, 31, 40),
-							BackgroundTransparency = 1,
-							Size = UDim2.new(1, 0, 0, 22),
-							ZIndex = 52,
-							Parent = optionscroll
-						})
-						create("UICorner", {CornerRadius = UDim.new(0, 3), Parent = optbtn})
-
-						-- Accent dot (like Mentality)
-						local optaccent = create("Frame", {
-							Name = "accent",
-							AnchorPoint = Vector2.new(0, 0.5),
-							BackgroundColor3 = library.colors.accent,
-							BackgroundTransparency = 1,
+							BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+							BackgroundTransparency = 0.98,
 							BorderSizePixel = 0,
-							Position = UDim2.new(0, 8, 0.5, 0),
-							Size = UDim2.new(0, 4, 0, 4),
-							ZIndex = 53,
-							Parent = optbtn
+							Size = UDim2.new(1, 0, 0, 26),
+							LayoutOrder = index,
+							Parent = dframe
 						})
-						create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = optaccent})
-						create("UIGradient", {
-							Color = ColorSequence.new{
-								ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-								ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-							},
-							Parent = optaccent
+						create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = optcontainer})
+						create("UIStroke", {
+							Color = Color3.fromRGB(28, 30, 38),
+							Thickness = 1,
+							Parent = optcontainer
 						})
 
-						local optlbl = create("TextLabel", {
-							Name = "label",
+						local opttext = create("TextLabel", {
+							Name = "Option",
 							AnchorPoint = Vector2.new(0, 0.5),
 							BackgroundTransparency = 1,
-							Position = UDim2.new(0, 8, 0.5, 0),
-							Size = UDim2.new(1, -16, 1, 0),
+							Position = UDim2.new(0, 10, 0.5, 0),
+							Size = UDim2.new(1, -20, 1, 0),
 							Font = Enum.Font.Gotham,
 							Text = optname,
-							TextColor3 = library.colors.subtext,
-							TextSize = 12,
+							TextColor3 = Color3.fromRGB(254, 254, 254), -- Default text
+							TextSize = 13,
 							TextXAlignment = Enum.TextXAlignment.Left,
-							TextTransparency = 0.3,
-							ZIndex = 53,
-							Parent = optbtn
+							Parent = optcontainer
 						})
 
-						local optclick = create("TextButton", {
+						-- The gradient line for selected state
+						local line = create("Frame", {
+							Name = "Line",
+							AnchorPoint = Vector2.new(0, 0.5),
+							BackgroundColor3 = Color3.fromRGB(254, 254, 254),
+							BorderSizePixel = 0,
+							Position = UDim2.new(0, -4, 0.5, 0),
+							Size = UDim2.new(0, 6, 0, 13),
+							Visible = false, -- Hidden by default
+							Parent = optcontainer
+						})
+						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
+						create("UIGradient", {
+							Color = ColorSequence.new{
+								ColorSequenceKeypoint.new(0.00, Color3.fromRGB(30, 83, 123)),
+								ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 85, 127))
+							},
+							Parent = line
+						})
+
+						local optbtn = create("TextButton", {
 							BackgroundTransparency = 1,
 							Size = UDim2.new(1, 0, 1, 0),
 							Text = "",
-							ZIndex = 54,
-							Parent = optbtn
+							Parent = optcontainer
 						})
 
+						-- Option State Management
 						local optdata = {
+							instance = optcontainer,
+							line = line,
+							text = opttext,
 							name = optname,
-							frame = optbtn,
-							label = optlbl,
-							accent = optaccent,
 							selected = false
 						}
 
-						local function setactive(active)
-							optdata.selected = active
-							if active then
-								tween(optlbl, {TextTransparency = 0, Position = UDim2.new(0, 20, 0.5, 0)}, 0.2)
-								tween(optaccent, {BackgroundTransparency = 0}, 0.2)
+						local function updateState(selected)
+							optdata.selected = selected
+							if selected then
+								tween(opttext, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2)
+								line.Visible = true
+								-- Optional: Tween line transparency if needed, but Visible toggle is sharper
 							else
-								tween(optlbl, {TextTransparency = 0.3, Position = UDim2.new(0, 8, 0.5, 0)}, 0.2)
-								tween(optaccent, {BackgroundTransparency = 1}, 0.2)
+								tween(opttext, {TextColor3 = Color3.fromRGB(150, 150, 150)}, 0.2)
+								line.Visible = false
 							end
 						end
 
-						optclick.MouseEnter:Connect(function()
-							if not optdata.selected then
-								tween(optbtn, {BackgroundTransparency = 0}, 0.15)
-								tween(optlbl, {TextColor3 = library.colors.text}, 0.15)
-							end
-						end)
-
-						optclick.MouseLeave:Connect(function()
-							if not optdata.selected then
-								tween(optbtn, {BackgroundTransparency = 1}, 0.15)
-								tween(optlbl, {TextColor3 = library.colors.subtext}, 0.15)
-							end
-						end)
-
-						optclick.MouseButton1Click:Connect(function()
+						optbtn.MouseButton1Click:Connect(function()
 							if dmulti then
-								local idx = table.find(dropdown.value, optname)
-								if idx then
-									table.remove(dropdown.value, idx)
-									setactive(false)
+								-- Multi Select
+								if table.find(dropdown.value, optname) then
+									-- Remove
+									for i, v in ipairs(dropdown.value) do
+										if v == optname then
+											table.remove(dropdown.value, i)
+											break
+										end
+									end
+									updateState(false)
 								else
+									-- Add
 									table.insert(dropdown.value, optname)
-									setactive(true)
+									updateState(true)
 								end
-								if dflag then
-									library.flags[dflag] = dropdown.value
+								-- Update header text for multi
+								if #dropdown.value > 0 then
+									headerLabel.Text = dname .. ": " .. table.concat(dropdown.value, ", ")
+								else
+									headerLabel.Text = dname
 								end
 							else
-								-- Single select
-								for _, opt in pairs(dropdown.optionframes) do
-									if opt.name == optname then
-										opt.selected = true
-										setactive(true)
-									else
-										opt.selected = false
-										tween(opt.label, {TextTransparency = 0.3, Position = UDim2.new(0, 8, 0.5, 0)}, 0.2)
-										tween(opt.accent, {BackgroundTransparency = 1}, 0.2)
-										tween(opt.frame, {BackgroundTransparency = 1}, 0.15)
+								-- Single Select
+								dropdown.value = optname
+								-- Deselect all others
+								for _, other in pairs(dropdown.optionframes) do
+									if other ~= optdata then
+										other.update(false)
 									end
 								end
-								dropdown.value = optname
-								if dflag then
-									library.flags[dflag] = dropdown.value
-								end
-								-- Close after selection for single select
-								task.delay(0.1, function()
-									dropdown:close()
-								end)
+								updateState(true)
+								headerLabel.Text = dname .. ": " .. optname
+								-- Close on selection
+								dropdown:toggle()
 							end
-							updatetext()
+
+							if dflag then
+								library.flags[dflag] = dropdown.value
+							end
 							task.spawn(function()
 								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
 							end)
 						end)
 
+						optdata.update = updateState
+						-- Initialize unselected state visuals
+						updateState(false)
+						
 						dropdown.optionframes[optname] = optdata
-						return optdata
 					end
 
-					-- Create all options
+					-- Initialize Options
 					for i, opt in ipairs(doptions) do
-						createoption(opt)
+						createoption(opt, i + 1) -- i+1 because header is 1
 					end
 
-					local function openDropdown()
-						dropdown.isopen = true
-						optionholder.Visible = true
-						updateposition()
-
-						-- Animate open
-						local targetHeight = math.min(#doptions * 24 + 12, 150)
-						optionholder.Size = UDim2.new(0, holder.AbsoluteSize.X, 0, 0)
-						tween(optionholder, {Size = UDim2.new(0, holder.AbsoluteSize.X, 0, targetHeight)}, 0.25, Enum.EasingStyle.Back)
-						tween(arrow, {Rotation = 180}, 0.2)
-
-						-- Staggered animation for options (Mentality style)
-						for i, opt in ipairs(doptions) do
-							local optdata = dropdown.optionframes[opt]
-							if optdata then
-								optdata.label.Position = UDim2.new(0, 30, 0.5, 0)
-								if optdata.selected then
-									optdata.accent.Position = UDim2.new(0, 30, 0.5, 0)
-								end
-								task.delay(i * 0.03, function()
-									if optdata.selected then
-										tween(optdata.accent, {Position = UDim2.new(0, 8, 0.5, 0)}, 0.3, Enum.EasingStyle.Quint)
-										tween(optdata.label, {Position = UDim2.new(0, 20, 0.5, 0)}, 0.3, Enum.EasingStyle.Quint)
-									else
-										tween(optdata.label, {Position = UDim2.new(0, 8, 0.5, 0)}, 0.3, Enum.EasingStyle.Quint)
-									end
-								end)
-							end
-						end
-					end
-
-					local function closeDropdown()
-						dropdown.isopen = false
-						tween(optionholder, {Size = UDim2.new(0, holder.AbsoluteSize.X, 0, 0)}, 0.2)
-						tween(arrow, {Rotation = 0}, 0.2)
-						task.delay(0.2, function()
-							if not dropdown.isopen then
-								optionholder.Visible = false
-							end
-						end)
-					end
-
-					function dropdown:open()
-						openDropdown()
-					end
-
-					function dropdown:close()
-						closeDropdown()
-					end
-
+					-- Open/Close Logic
 					function dropdown:toggle()
+						dropdown.isopen = not dropdown.isopen
 						if dropdown.isopen then
-							closeDropdown()
+							local h = calculateHeight()
+							tween(dframe, {Size = UDim2.new(1, 0, 0, h)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+							tween(chevron, {Rotation = 180}, 0.2)
 						else
-							openDropdown()
+							tween(dframe, {Size = UDim2.new(1, 0, 0, 34)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+							tween(chevron, {Rotation = 0}, 0.2)
 						end
 					end
 
-					function dropdown:set(value, nocallback)
+					function dropdown:set(val, nocallback)
 						if dmulti then
-							if type(value) == "table" then
-								dropdown.value = value
+							if type(val) == "table" then
+								dropdown.value = val
+								-- Reset all
 								for _, opt in pairs(dropdown.optionframes) do
-									local isSelected = table.find(value, opt.name) ~= nil
-									opt.selected = isSelected
-									if isSelected then
-										opt.label.Position = UDim2.new(0, 20, 0.5, 0)
-										opt.label.TextTransparency = 0
-										opt.accent.BackgroundTransparency = 0
-									else
-										opt.label.Position = UDim2.new(0, 8, 0.5, 0)
-										opt.label.TextTransparency = 0.3
-										opt.accent.BackgroundTransparency = 1
+									opt.update(false)
+								end
+								-- Set new
+								for _, v in ipairs(val) do
+									if dropdown.optionframes[v] then
+										dropdown.optionframes[v].update(true)
 									end
+								end
+								if #dropdown.value > 0 then
+									headerLabel.Text = dname .. ": " .. table.concat(dropdown.value, ", ")
+								else
+									headerLabel.Text = dname
 								end
 							end
 						else
-							dropdown.value = value
-							for _, opt in pairs(dropdown.optionframes) do
-								local isSelected = opt.name == value
-								opt.selected = isSelected
-								if isSelected then
-									opt.label.Position = UDim2.new(0, 20, 0.5, 0)
-									opt.label.TextTransparency = 0
-									opt.accent.BackgroundTransparency = 0
-								else
-									opt.label.Position = UDim2.new(0, 8, 0.5, 0)
-									opt.label.TextTransparency = 0.3
-									opt.accent.BackgroundTransparency = 1
+							if dropdown.optionframes[val] then
+								dropdown.value = val
+								-- Deselect all
+								for _, opt in pairs(dropdown.optionframes) do
+									opt.update(false)
 								end
+								-- Select one
+								dropdown.optionframes[val].update(true)
+								headerLabel.Text = dname .. ": " .. val
 							end
 						end
+						
 						if dflag then
 							library.flags[dflag] = dropdown.value
 						end
-						updatetext()
+
 						if not nocallback then
 							task.spawn(function()
 								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
@@ -1387,7 +1235,7 @@ function library:create(cfg)
 					function dropdown:refresh(newoptions)
 						-- Clear old options
 						for _, opt in pairs(dropdown.optionframes) do
-							opt.frame:Destroy()
+							opt.instance:Destroy()
 						end
 						dropdown.optionframes = {}
 						doptions = newoptions
@@ -1399,49 +1247,24 @@ function library:create(cfg)
 						else
 							dropdown.value = nil
 						end
+						headerLabel.Text = dname
 
 						-- Create new options
 						for i, opt in ipairs(newoptions) do
-							createoption(opt)
+							createoption(opt, i + 1)
 						end
-						updatetext()
+						
+						-- Close if open to resize correctly next time
+						if dropdown.isopen then
+							dropdown:toggle()
+						end
 					end
 
-					holderBtn.MouseButton1Click:Connect(function()
+					headerBtn.MouseButton1Click:Connect(function()
 						dropdown:toggle()
 					end)
 
-					-- Close when clicking outside
-					userinput.InputBegan:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton1 then
-							if dropdown.isopen then
-								local mousePos = userinput:GetMouseLocation()
-								local holderPos = holder.AbsolutePosition
-								local holderSize = holder.AbsoluteSize
-								local listPos = optionholder.AbsolutePosition
-								local listSize = optionholder.AbsoluteSize
-
-								local inHolder = mousePos.X >= holderPos.X and mousePos.X <= holderPos.X + holderSize.X and
-									mousePos.Y >= holderPos.Y and mousePos.Y <= holderPos.Y + holderSize.Y
-								local inList = mousePos.X >= listPos.X and mousePos.X <= listPos.X + listSize.X and
-									mousePos.Y >= listPos.Y and mousePos.Y <= listPos.Y + listSize.Y
-
-								if not inHolder and not inList then
-									dropdown:close()
-								end
-							end
-						end
-					end)
-
-					-- Update position on scroll
-					page:GetPropertyChangedSignal("CanvasPosition"):Connect(updateposition)
-
-					dropdown.frame = dframe
-					dropdown.holder = holder
-					dropdown.valuetext = valuetext
-					dropdown.optionholder = optionholder
-
-					-- Set default value
+					-- Set default if exists
 					if ddefault then
 						dropdown:set(ddefault, true)
 					end
@@ -1449,6 +1272,7 @@ function library:create(cfg)
 					table.insert(section.elements, dropdown)
 					return dropdown
 				end
+
 
 				return section
 			end
