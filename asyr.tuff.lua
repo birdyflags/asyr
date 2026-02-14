@@ -961,15 +961,12 @@ function library:create(cfg)
 						library.flags[dflag] = dropdown.value
 					end
 
-					local accentgradient = ColorSequence.new{
-						ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 83, 123)),
-						ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 85, 127))
-					}
-
 					local dframe = create("Frame", {
 						Name = dname,
 						BackgroundTransparency = 1,
+						ClipsDescendants = false,
 						Size = UDim2.new(1, 0, 0, 55),
+						ZIndex = 1,
 						Parent = secholder
 					})
 
@@ -988,11 +985,11 @@ function library:create(cfg)
 
 					local holder = create("Frame", {
 						Name = "holder",
-						AnchorPoint = Vector2.new(0.5, 1),
+						AnchorPoint = Vector2.new(0.5, 0),
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 						BorderSizePixel = 0,
-						ClipsDescendants = true,
-						Position = UDim2.new(0.5, 0, 1, 0),
+						ClipsDescendants = false,
+						Position = UDim2.new(0.5, 0, 0, 30),
 						Size = UDim2.new(1, -46, 0, 22),
 						Parent = dframe
 					})
@@ -1013,7 +1010,6 @@ function library:create(cfg)
 						TextTruncate = Enum.TextTruncate.AtEnd,
 						Parent = holder
 					})
-					create("UIGradient", {Color = accentgradient, Parent = valuetext})
 
 					local lineLeft = create("Frame", {
 						Name = "lineLeft",
@@ -1025,7 +1021,6 @@ function library:create(cfg)
 						Parent = holder
 					})
 					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
-					create("UIGradient", {Color = accentgradient, Parent = lineLeft})
 
 					local lineRight = create("Frame", {
 						Name = "lineRight",
@@ -1037,7 +1032,6 @@ function library:create(cfg)
 						Parent = holder
 					})
 					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
-					create("UIGradient", {Color = accentgradient, Parent = lineRight})
 
 					local arrow = create("ImageLabel", {
 						Name = "arrow",
@@ -1061,19 +1055,23 @@ function library:create(cfg)
 
 					local dropdownList = create("Frame", {
 						Name = dname .. "_list",
-						AnchorPoint = Vector2.new(0.5, 1),
+						AnchorPoint = Vector2.new(0, 0),
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 						BorderSizePixel = 0,
 						ClipsDescendants = true,
-						Position = UDim2.new(0.5, 0, 1, 0),
-						Size = UDim2.new(0, 1, 0, 1),
+						Position = UDim2.new(0, 0, 1, 2),
+						Size = UDim2.new(1, 0, 0, 0),
 						Visible = false,
 						ZIndex = 50,
 						Parent = holder
 					})
 					create("UIStroke", {Color = library.colors.stroke, Parent = dropdownList})
 					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = dropdownList})
-					create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = dropdownList})
+					create("UIListLayout", {
+						SortOrder = Enum.SortOrder.LayoutOrder,
+						FillDirection = Enum.FillDirection.Vertical,
+						Parent = dropdownList
+					})
 
 					local function updatetext()
 						if dmulti then
@@ -1113,7 +1111,7 @@ function library:create(cfg)
 						local line = create("Frame", {
 							Name = "Line",
 							AnchorPoint = Vector2.new(0, 0.5),
-							BackgroundColor3 = Color3.fromRGB(254, 254, 254),
+							BackgroundColor3 = library.colors.accent,
 							BorderSizePixel = 0,
 							Position = UDim2.new(0, -4, 0.5, 0),
 							Size = UDim2.new(0, 0, 0, 13),
@@ -1121,7 +1119,6 @@ function library:create(cfg)
 							Parent = itemholder
 						})
 						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
-						create("UIGradient", {Color = accentgradient, Parent = line})
 
 						local itembtn = create("TextButton", {
 							BackgroundTransparency = 1,
@@ -1143,16 +1140,11 @@ function library:create(cfg)
 							optdata.selected = selected
 							if selected then
 								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.98}, 0.15)
-								tween(optionlbl, {TextColor3 = Color3.fromRGB(254, 254, 254)}, 0.15)
-								if not optionlbl:FindFirstChildOfClass("UIGradient") then
-									create("UIGradient", {Color = accentgradient, Parent = optionlbl})
-								end
+								tween(optionlbl, {TextColor3 = library.colors.accent}, 0.15)
 								tween(line, {Size = UDim2.new(0, 6, 0, 13)}, 0.2)
 							else
 								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32), BackgroundTransparency = 0}, 0.15)
 								tween(optionlbl, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.15)
-								local grad = optionlbl:FindFirstChildOfClass("UIGradient")
-								if grad then grad:Destroy() end
 								tween(line, {Size = UDim2.new(0, 0, 0, 13)}, 0.15)
 							end
 						end
@@ -1211,12 +1203,14 @@ function library:create(cfg)
 						dropdown.isopen = not dropdown.isopen
 						if dropdown.isopen then
 							dropdownList.Visible = true
+							dframe.ZIndex = 10
 							local count = 0
 							for _ in pairs(dropdown.optionframes) do count = count + 1 end
 							local targetheight = math.min(count, maxvisible) * itemheight
 							tween(dropdownList, {Size = UDim2.new(1, 0, 0, targetheight)}, 0.25)
 							tween(arrow, {Rotation = 180}, 0.25)
 						else
+							dframe.ZIndex = 1
 							tween(dropdownList, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
 							tween(arrow, {Rotation = 0}, 0.25)
 							task.delay(0.2, function()
