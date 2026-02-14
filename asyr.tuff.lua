@@ -938,7 +938,7 @@ function library:create(cfg)
 				end
 
 
-				-- Dropdown component (Floating, Strict Hierarchy)
+				-- Enhanced Dropdown component (Floating, Search, Scroll, Animations)
 				function section:adddropdown(cfg)
 					cfg = cfg or {}
 					local dname = cfg.name or "Dropdown"
@@ -955,6 +955,7 @@ function library:create(cfg)
 						value = dmulti and {} or nil,
 						isopen = false,
 						optionframes = {},
+						filteredoptions = doptions,
 						callback = dcallback
 					}
 
@@ -1080,7 +1081,6 @@ function library:create(cfg)
 					})
 
 					-- 2. The Floating Dropdown List (Parented to GUI)
-					-- Strict hierarchy: Dropdown -> UIStroke, UICorner, UIListLayout -> Holder -> ...
 					local dropdownList = create("Frame", {
 						Name = "Dropdown",
 						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
@@ -1090,20 +1090,75 @@ function library:create(cfg)
 						Position = UDim2.new(0, 0, 0, 0),
 						Size = UDim2.new(0, 264, 0, 0), -- Initial size 0
 						Visible = false,
-						ZIndex = 100, -- Float above everything
+						ZIndex = 110, -- Float higher
 						Parent = window.gui
 					})
 
 					create("UIStroke", {Color = Color3.fromRGB(28, 30, 38), Parent = dropdownList})
 					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = dropdownList})
-					create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = dropdownList})
+
+					-- Search Bar Container
+					local searchContainer = create("Frame", {
+						Name = "SearchContainer",
+						BackgroundTransparency = 1,
+						Size = UDim2.new(1, 0, 0, 26),
+						Parent = dropdownList
+					})
+					create("UIPadding", {PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4), PaddingTop = UDim.new(0, 4), Parent = searchContainer})
+
+					local searchBox = create("TextBox", {
+						Name = "SearchBox",
+						BackgroundColor3 = Color3.fromRGB(30, 31, 38),
+						BorderSizePixel = 0,
+						Size = UDim2.new(1, 0, 1, 0),
+						Font = Enum.Font.Gotham,
+						PlaceholderText = "Search...",
+						PlaceholderColor3 = Color3.fromRGB(100, 100, 110),
+						Text = "",
+						TextColor3 = Color3.fromRGB(200, 200, 200),
+						TextSize = 12,
+						ZIndex = 112,
+						Parent = searchContainer
+					})
+					create("UICorner", {CornerRadius = UDim.new(0, 4), Parent = searchBox})
+					create("UIPadding", {PaddingLeft = UDim.new(0, 6), Parent = searchBox})
+
+					-- Scrolling List Container
+					local scrollFrame = create("ScrollingFrame", {
+						Name = "OptionList",
+						BackgroundTransparency = 1,
+						Position = UDim2.new(0, 0, 0, 28), -- Below search
+						Size = UDim2.new(1, 0, 1, -28),
+						CanvasSize = UDim2.new(0, 0, 0, 0),
+						ScrollBarThickness = 2,
+						ScrollBarImageColor3 = library.colors.accent,
+						AutomaticCanvasSize = Enum.AutomaticSize.Y,
+						ZIndex = 111,
+						Parent = dropdownList
+					})
+					create("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Parent = scrollFrame})
 
 					local function updatePosition()
 						if not dropdown.isopen then return end
 						local absPos = holder.AbsolutePosition
 						local absSize = holder.AbsoluteSize
 						dropdownList.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
-						dropdownList.Size = UDim2.new(0, absSize.X, 0, #doptions * 22) -- 22px per item
+						
+						local visibleCount = 0
+						for _, opt in pairs(dropdown.optionframes) do
+							if opt.holder.Visible then
+								visibleCount = visibleCount + 1
+							end
+						end
+						
+						local itemHeight = 22
+						local searchHeight = 28
+						local maxItems = 8 -- Max visible items before scrolling
+						local contentHeight = visibleCount * itemHeight
+						
+						local totalHeight = math.min(contentHeight + searchHeight, (maxItems * itemHeight) + searchHeight)
+						
+						tween(dropdownList, {Size = UDim2.new(0, absSize.X, 0, totalHeight)}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 					end
 
 					local function updateText()
@@ -1122,26 +1177,22 @@ function library:create(cfg)
 						-- STRICT HIERARCHY: Holder -> UIStroke, UICorner, Option, Line -> ...
 						local itemHolder = create("Frame", {
 							Name = "Holder",
-							BackgroundColor3 = Color3.fromRGB(24, 25, 32), -- Matches dropdown bg
+							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 							BorderColor3 = Color3.fromRGB(0, 0, 0),
 							BorderSizePixel = 0,
 							ClipsDescendants = true,
 							Size = UDim2.new(1, 0, 0, 22),
-							BackgroundTransparency = 0, -- As per user snippet it seems opaque or semi-transparent
-							ZIndex = 101,
-							Parent = dropdownList
+							BackgroundTransparency = 0,
+							ZIndex = 113,
+							Parent = scrollFrame
 						})
 
-						-- In user code, Holder has transparent background in second example, but dark in first.
-						-- Assuming we want it to blend or stand out. Let's stick to the styling provided in the standard item.
-						itemHolder.BackgroundColor3 = Color3.fromRGB(24, 25, 32) 
-						
 						-- Interaction button covering the holder
 						local itemBtn = create("TextButton", {
 							BackgroundTransparency = 1,
 							Size = UDim2.new(1, 0, 1, 0),
 							Text = "",
-							ZIndex = 105,
+							ZIndex = 115,
 							Parent = itemHolder
 						})
 
@@ -1157,11 +1208,11 @@ function library:create(cfg)
 							BorderSizePixel = 0,
 							Position = UDim2.new(0.025, 0, 0.5, 0),
 							Size = UDim2.new(0, 1, 0, 1),
-							Font = Enum.Font.Gotham, -- User had Unknown, defaulting to Gotham
+							Font = Enum.Font.Gotham,
 							Text = optName,
 							TextColor3 = Color3.fromRGB(254, 254, 254),
 							TextSize = 13.000,
-							ZIndex = 102,
+							ZIndex = 114,
 							Parent = itemHolder
 						})
 
@@ -1174,7 +1225,7 @@ function library:create(cfg)
 							Position = UDim2.new(0, -4, 0.5, 0),
 							Size = UDim2.new(0, 6, 0, 13),
 							Visible = false, -- Default hidden
-							ZIndex = 103,
+							ZIndex = 115,
 							Parent = itemHolder
 						})
 
@@ -1199,22 +1250,12 @@ function library:create(cfg)
 						local function updateState(selected)
 							optData.selected = selected
 							if selected then
-								-- User snippet: "Option_2" (Selected) has UIGradient on text? 
-								-- User snippet shows UIGradient parented to Option_2.
-								-- Let's apply gradient to text if selected, or just white. 
-								-- User code: Option_2 TextColor3 is 254,254,254. UIGradient is child.
-								-- So text becomes gradient.
-								
-								-- Check if we need specific gradient on text:
-								-- User snippet: Option_2 (Selected) -> UIGradient.
-								-- We will simulate this by ensuring we have a gradient ready or creating one.
 								if not optionText:FindFirstChild("TextGradient") then
 									local tg = gradient:Clone()
 									tg.Name = "TextGradient"
 									tg.Parent = optionText
 								end
-								optionText.TextColor3 = Color3.fromRGB(255, 255, 255) -- Gradient controls color
-								
+								optionText.TextColor3 = Color3.fromRGB(255, 255, 255)
 								line.Visible = true
 							else
 								if optionText:FindFirstChild("TextGradient") then
@@ -1224,6 +1265,19 @@ function library:create(cfg)
 								line.Visible = false
 							end
 						end
+						
+						-- Hover Animation
+						itemBtn.MouseEnter:Connect(function()
+							if not optData.selected then
+								tween(itemHolder, {BackgroundColor3 = Color3.fromRGB(30, 32, 40)}, 0.15)
+							end
+						end)
+						
+						itemBtn.MouseLeave:Connect(function()
+							if not optData.selected then
+								tween(itemHolder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
+							end
+						end)
 
 						itemBtn.MouseButton1Click:Connect(function()
 							if dmulti then
@@ -1263,6 +1317,19 @@ function library:create(cfg)
 						return optData
 					end
 
+					-- Search Logic
+					searchBox:GetPropertyChangedSignal("Text"):Connect(function()
+						local input = searchBox.Text:lower()
+						for name, opt in pairs(dropdown.optionframes) do
+							if input == "" or string.find(name:lower(), input, 1, true) then
+								opt.holder.Visible = true
+							else
+								opt.holder.Visible = false
+							end
+						end
+						updatePosition()
+					end)
+
 					-- Create Initial Options
 					for _, opt in ipairs(doptions) do
 						createOption(opt)
@@ -1274,15 +1341,17 @@ function library:create(cfg)
 						if dropdown.isopen then
 							dropdownList.Visible = true
 							updatePosition()
+							tween(arrow, {Rotation = 180}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 						else
-							dropdownList.Visible = false
-						end
-						
-						-- Arrow Rotation
-						if dropdown.isopen then
-							tween(arrow, {Rotation = 180}, 0.2)
-						else
-							tween(arrow, {Rotation = 0}, 0.2)
+							-- Close animation
+							tween(dropdownList, ({Size = UDim2.new(0, holder.AbsoluteSize.X, 0, 0)}), 0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+							tween(arrow, {Rotation = 0}, 0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+							task.delay(0.2, function()
+								if not dropdown.isopen then
+									dropdownList.Visible = false
+									searchBox.Text = "" -- Clear search on close
+								end
+							end)
 						end
 					end
 
@@ -1290,19 +1359,9 @@ function library:create(cfg)
 						dropdown:toggle()
 					end)
 
-					-- Scroll Update
-					page:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-						if dropdown.isopen then
-							updatePosition()
-						end
-					end)
-					
-					-- Drag Update (Window Move)
-					main:GetPropertyChangedSignal("Position"):Connect(function()
-						if dropdown.isopen then
-							updatePosition()
-						end
-					end)
+					-- Scroll Update & Drag alignment match
+					page:GetPropertyChangedSignal("CanvasPosition"):Connect(function() if dropdown.isopen then updatePosition() end end)
+					main:GetPropertyChangedSignal("Position"):Connect(function() if dropdown.isopen then updatePosition() end end)
 
 					-- Click Outside to Close
 					userinput.InputBegan:Connect(function(input)
