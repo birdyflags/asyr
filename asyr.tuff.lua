@@ -1061,8 +1061,7 @@ function library:create(cfg)
 						})
 
 						-- Dropdown popup - parented to the ScreenGui so it floats above everything
-						-- This is the key fix: it noclips through sections, scrolling frames, etc.
-						local dropdownPopup = create("Frame", {
+						local dropdownPopup = create("ScrollingFrame", {
 							Name = dname .. "_popup",
 							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 							BorderSizePixel = 0,
@@ -1070,6 +1069,11 @@ function library:create(cfg)
 							Size = UDim2.new(0, 264, 0, 0),
 							Visible = false,
 							ZIndex = 999,
+							ScrollBarImageColor3 = Color3.fromRGB(50, 50, 60),
+							ScrollBarThickness = 3,
+							CanvasSize = UDim2.new(0, 0, 0, 0),
+							AutomaticCanvasSize = Enum.AutomaticSize.Y,
+							ScrollingDirection = Enum.ScrollingDirection.Y,
 							Parent = gui
 						})
 						create("UIStroke", {Color = library.colors.stroke, Parent = dropdownPopup})
@@ -1260,20 +1264,25 @@ function library:create(cfg)
 							dropdown:toggle()
 						end)
 
-						-- Close dropdown when clicking outside
+						-- Close dropdown when clicking outside (delayed by 1 frame so option clicks process first)
 						userinput.InputBegan:Connect(function(input)
 							if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.isopen then
-								local mouse = userinput:GetMouseLocation()
+								task.defer(function()
+									if not dropdown.isopen then return end
+									local mouse = userinput:GetMouseLocation()
 
-								local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
-								local ppos, psize = dropdownPopup.AbsolutePosition, dropdownPopup.AbsoluteSize
+									local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
+									local ppos = dropdownPopup.AbsolutePosition
+									local pcanvas = dropdownPopup.AbsoluteCanvasSize
+									local psize = dropdownPopup.AbsoluteSize
 
-								local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
-								local inpopup = mouse.X >= ppos.X and mouse.X <= ppos.X + psize.X and mouse.Y >= ppos.Y and mouse.Y <= ppos.Y + psize.Y
+									local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
+									local inpopup = mouse.X >= ppos.X and mouse.X <= ppos.X + psize.X and mouse.Y >= ppos.Y and mouse.Y <= ppos.Y + psize.Y
 
-								if not inholder and not inpopup then
-									dropdown:toggle()
-								end
+									if not inholder and not inpopup then
+										dropdown:toggle()
+									end
+								end)
 							end
 						end)
 
