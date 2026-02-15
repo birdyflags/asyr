@@ -939,344 +939,401 @@ function library:create(cfg)
 
 
 					function section:adddropdown(cfg)
-					cfg = cfg or {}
-					local dname = cfg.name or "Dropdown"
-					local doptions = cfg.options or {"Option 1", "Option 2", "Option 3"}
-					local ddefault = cfg.default
-					local dcallback = cfg.callback or function() end
-					local dflag = cfg.flag
-					local dmulti = cfg.multi or false
-
-					local dropdown = {
-						name = dname,
-						options = doptions,
-						multi = dmulti,
-						value = dmulti and {} or nil,
-						isopen = false,
-						optionframes = {},
-						callback = dcallback
-					}
-
-					if dflag then
-						library.flags[dflag] = dropdown.value
-					end
-
-					local dframe = create("Frame", {
-						Name = dname,
-						BackgroundTransparency = 1,
-						ClipsDescendants = false,
-						Size = UDim2.new(1, 0, 0, 55),
-						ZIndex = 1,
-						Parent = secholder
-					})
-
-					create("TextLabel", {
-						Name = "label",
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0, 25, 0, 12),
-						Size = UDim2.new(0, 1, 0, 1),
-						Font = Enum.Font.Gotham,
-						Text = dname,
-						TextColor3 = Color3.fromRGB(204, 204, 209),
-						TextSize = 12,
-						TextXAlignment = Enum.TextXAlignment.Left,
-						Parent = dframe
-					})
-
-					local holder = create("Frame", {
-						Name = "holder",
-						AnchorPoint = Vector2.new(0.5, 0),
-						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
-						BorderSizePixel = 0,
-						ClipsDescendants = false,
-						Position = UDim2.new(0.5, 0, 0, 30),
-						Size = UDim2.new(1, -46, 0, 22),
-						Parent = dframe
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = holder})
-					create("UIStroke", {Color = library.colors.stroke, Parent = holder})
-
-					local valuetext = create("TextLabel", {
-						Name = "value",
-						AnchorPoint = Vector2.new(0, 0.5),
-						BackgroundTransparency = 1,
-						Position = UDim2.new(0.025, 0, 0.5, 0),
-						Size = UDim2.new(1, -30, 1, 0),
-						Font = Enum.Font.GothamMedium,
-						Text = "...",
-						TextColor3 = library.colors.accent,
-						TextSize = 13,
-						TextXAlignment = Enum.TextXAlignment.Left,
-						TextTruncate = Enum.TextTruncate.AtEnd,
-						Parent = holder
-					})
-
-					local lineLeft = create("Frame", {
-						Name = "lineLeft",
-						AnchorPoint = Vector2.new(0, 0.5),
-						BackgroundColor3 = library.colors.accent,
-						BorderSizePixel = 0,
-						Position = UDim2.new(0, -4, 0.5, 0),
-						Size = UDim2.new(0, 6, 0, 13),
-						Parent = holder
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
-
-					local lineRight = create("Frame", {
-						Name = "lineRight",
-						AnchorPoint = Vector2.new(1, 0.5),
-						BackgroundColor3 = library.colors.accent,
-						BorderSizePixel = 0,
-						Position = UDim2.new(1, 4, 0.5, 0),
-						Size = UDim2.new(0, 6, 0, 13),
-						Parent = holder
-					})
-					create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
-
-					local arrow = create("ImageLabel", {
-						Name = "arrow",
-						AnchorPoint = Vector2.new(1, 0.5),
-						BackgroundTransparency = 1,
-						Position = UDim2.new(1, -6, 0.5, 0),
-						Size = UDim2.new(0, 12, 0, 12),
-						Image = "rbxassetid://6031091004",
-						ImageColor3 = Color3.fromRGB(141, 141, 150),
-						Rotation = 0,
-						Parent = holder
-					})
-
-					local holderBtn = create("TextButton", {
-						BackgroundTransparency = 1,
-						Size = UDim2.new(1, 0, 1, 0),
-						Text = "",
-						ZIndex = 2,
-						Parent = holder
-					})
-
-					local dropdownList = create("Frame", {
-						Name = dname .. "_list",
-						AnchorPoint = Vector2.new(0, 0),
-						BackgroundColor3 = Color3.fromRGB(24, 25, 32),
-						BorderSizePixel = 0,
-						ClipsDescendants = true,
-						Position = UDim2.new(0, 0, 1, 2),
-						Size = UDim2.new(1, 0, 0, 0),
-						Visible = false,
-						ZIndex = 50,
-						Parent = holder
-					})
-					create("UIStroke", {Color = library.colors.stroke, Parent = dropdownList})
-					create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = dropdownList})
-					create("UIListLayout", {
-						SortOrder = Enum.SortOrder.LayoutOrder,
-						FillDirection = Enum.FillDirection.Vertical,
-						Parent = dropdownList
-					})
-
-					local function updatetext()
-						if dmulti then
-							valuetext.Text = #dropdown.value > 0 and table.concat(dropdown.value, ", ") or "..."
-						else
-							valuetext.Text = dropdown.value or "..."
+						cfg = cfg or {}
+						local dname = cfg.name or "Dropdown"
+						local doptions = cfg.options or {"Option 1", "Option 2", "Option 3"}
+						local ddefault = cfg.default
+						local dcallback = cfg.callback or function() end
+						local dflag = cfg.flag
+						local dmulti = cfg.multi or false
+	
+						local dropdown = {
+							name = dname,
+							options = doptions,
+							multi = dmulti,
+							value = dmulti and {} or nil,
+							isopen = false,
+							optionframes = {},
+							callback = dcallback
+						}
+	
+						if dflag then
+							library.flags[dflag] = dropdown.value
 						end
-					end
-
-					local function createoption(optname)
-						local itemholder = create("Frame", {
-							Name = "Holder",
+	
+						-- Main dropdown container
+						local dframe = create("Frame", {
+							Name = dname,
+							BackgroundTransparency = 1,
+							ClipsDescendants = false,
+							Size = UDim2.new(1, 0, 0, 55),
+							ZIndex = 1,
+							Parent = secholder
+						})
+	
+						-- Label
+						create("TextLabel", {
+							Name = "label",
+							BackgroundTransparency = 1,
+							Position = UDim2.new(0, 25, 0, 12),
+							Size = UDim2.new(0, 1, 0, 1),
+							Font = Enum.Font.Gotham,
+							Text = dname,
+							TextColor3 = Color3.fromRGB(204, 204, 209),
+							TextSize = 12,
+							TextXAlignment = Enum.TextXAlignment.Left,
+							Parent = dframe
+						})
+	
+						-- Main dropdown holder (the clickable part)
+						local holder = create("Frame", {
+							Name = "holder",
+							AnchorPoint = Vector2.new(0.5, 0),
 							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 							BorderSizePixel = 0,
 							ClipsDescendants = true,
-							Size = UDim2.new(1, 0, 0, 22),
-							ZIndex = 51,
-							Parent = dropdownList
+							Position = UDim2.new(0.5, 0, 0, 30),
+							Size = UDim2.new(1, -46, 0, 22),
+							Parent = dframe
 						})
-						create("UIStroke", {Color = library.colors.stroke, Parent = itemholder})
-						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = itemholder})
-
-						local optionlbl = create("TextLabel", {
-							Name = "Option",
+						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = holder})
+						create("UIStroke", {Color = library.colors.stroke, Parent = holder})
+	
+						-- Current value text
+						local valuetext = create("TextLabel", {
+							Name = "value",
 							AnchorPoint = Vector2.new(0, 0.5),
 							BackgroundTransparency = 1,
 							Position = UDim2.new(0.025, 0, 0.5, 0),
-							Size = UDim2.new(0, 1, 0, 1),
-							Font = Enum.Font.Gotham,
-							Text = optname,
-							TextColor3 = Color3.fromRGB(255, 255, 255),
+							Size = UDim2.new(1, -30, 1, 0),
+							Font = Enum.Font.GothamMedium,
+							Text = "...",
+							TextColor3 = library.colors.text,
 							TextSize = 13,
-							ZIndex = 52,
-							Parent = itemholder
+							TextXAlignment = Enum.TextXAlignment.Left,
+							TextTruncate = Enum.TextTruncate.AtEnd,
+							Parent = holder
 						})
-
-						local line = create("Frame", {
-							Name = "Line",
+	
+						-- Left accent line
+						local lineLeft = create("Frame", {
+							Name = "lineLeft",
 							AnchorPoint = Vector2.new(0, 0.5),
 							BackgroundColor3 = library.colors.accent,
 							BorderSizePixel = 0,
 							Position = UDim2.new(0, -4, 0.5, 0),
-							Size = UDim2.new(0, 0, 0, 13),
-							ZIndex = 53,
-							Parent = itemholder
+							Size = UDim2.new(0, 6, 0, 13),
+							Parent = holder
 						})
-						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
-
-						local itembtn = create("TextButton", {
+						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
+	
+						-- Right accent line
+						local lineRight = create("Frame", {
+							Name = "lineRight",
+							AnchorPoint = Vector2.new(1, 0.5),
+							BackgroundColor3 = library.colors.accent,
+							BorderSizePixel = 0,
+							Position = UDim2.new(1, 4, 0.5, 0),
+							Size = UDim2.new(0, 6, 0, 13),
+							Parent = holder
+						})
+						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
+	
+						-- Arrow indicator
+						local arrow = create("ImageLabel", {
+							Name = "arrow",
+							AnchorPoint = Vector2.new(1, 0.5),
+							BackgroundTransparency = 1,
+							Position = UDim2.new(1, -6, 0.5, 0),
+							Size = UDim2.new(0, 12, 0, 12),
+							Image = "rbxassetid://6031091004",
+							ImageColor3 = Color3.fromRGB(141, 141, 150),
+							Rotation = 0,
+							Parent = holder
+						})
+	
+						-- Clickable button for main holder
+						local holderBtn = create("TextButton", {
 							BackgroundTransparency = 1,
 							Size = UDim2.new(1, 0, 1, 0),
 							Text = "",
-							ZIndex = 54,
-							Parent = itemholder
+							ZIndex = 2,
+							Parent = holder
 						})
-
-						local optdata = {
-							name = optname,
-							holder = itemholder,
-							text = optionlbl,
-							line = line,
-							selected = false
-						}
-
-						local function setselected(selected)
-							optdata.selected = selected
-							if selected then
-								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.98}, 0.15)
-								tween(optionlbl, {TextColor3 = library.colors.accent}, 0.15)
-								tween(line, {Size = UDim2.new(0, 6, 0, 13)}, 0.2)
-							else
-								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32), BackgroundTransparency = 0}, 0.15)
-								tween(optionlbl, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.15)
-								tween(line, {Size = UDim2.new(0, 0, 0, 13)}, 0.15)
-							end
-						end
-
-						itembtn.MouseEnter:Connect(function()
-							if not optdata.selected then
-								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(30, 32, 40)}, 0.15)
-							end
-						end)
-
-						itembtn.MouseLeave:Connect(function()
-							if not optdata.selected then
-								tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
-							end
-						end)
-
-						itembtn.MouseButton1Click:Connect(function()
+	
+						-- Dropdown list container (properly positioned below holder)
+						local dropdownContainer = create("Frame", {
+							Name = dname .. "_container",
+							AnchorPoint = Vector2.new(0.5, 0),
+							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
+							BorderSizePixel = 0,
+							ClipsDescendants = true,
+							Position = UDim2.new(0.5, 0, 1, 2),
+							Size = UDim2.new(1, 0, 0, 1),
+							Visible = false,
+							ZIndex = 100,
+							Parent = holder
+						})
+						create("UIStroke", {Color = library.colors.stroke, Parent = dropdownContainer})
+						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = dropdownContainer})
+	
+						-- List layout for options
+						local listLayout = create("UIListLayout", {
+							SortOrder = Enum.SortOrder.LayoutOrder,
+							FillDirection = Enum.FillDirection.Vertical,
+							Parent = dropdownContainer
+						})
+	
+						-- Update value text display
+						local function updatetext()
 							if dmulti then
-								local idx = table.find(dropdown.value, optname)
-								if idx then
-									table.remove(dropdown.value, idx)
-									setselected(false)
+								if #dropdown.value > 0 then
+									valuetext.Text = table.concat(dropdown.value, ", ")
 								else
-									table.insert(dropdown.value, optname)
-									setselected(true)
+									valuetext.Text = "..."
 								end
 							else
-								dropdown.value = optname
-								for _, other in pairs(dropdown.optionframes) do
-									other.setselected(false)
-								end
-								setselected(true)
-								dropdown:toggle()
+								valuetext.Text = dropdown.value or "..."
 							end
-
-							if dflag then library.flags[dflag] = dropdown.value end
-							updatetext()
-							task.spawn(function()
-								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
+						end
+	
+						-- Create an option in the dropdown
+						local function createoption(optname)
+							local itemholder = create("Frame", {
+								Name = "Holder",
+								BackgroundColor3 = Color3.fromRGB(24, 25, 32),
+								BorderSizePixel = 0,
+								ClipsDescendants = true,
+								Size = UDim2.new(1, 0, 0, 22),
+								Parent = dropdownContainer
+							})
+							create("UIStroke", {Color = library.colors.stroke, Parent = itemholder})
+							create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = itemholder})
+	
+							local optionlbl = create("TextLabel", {
+								Name = "Option",
+								AnchorPoint = Vector2.new(0, 0.5),
+								BackgroundTransparency = 1,
+								Position = UDim2.new(0.025, 0, 0.5, 0),
+								Size = UDim2.new(0, 1, 0, 1),
+								Font = Enum.Font.Gotham,
+								Text = optname,
+								TextColor3 = Color3.fromRGB(255, 255, 255),
+								TextSize = 13,
+								Parent = itemholder
+							})
+	
+							local line = create("Frame", {
+								Name = "Line",
+								AnchorPoint = Vector2.new(0, 0.5),
+								BackgroundColor3 = library.colors.accent,
+								BorderSizePixel = 0,
+								Position = UDim2.new(0, -4, 0.5, 0),
+								Size = UDim2.new(0, 0, 0, 13),
+								Parent = itemholder
+							})
+							create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
+	
+							-- Add gradient for selected state
+							local optionGradient = create("UIGradient", {
+								Color = ColorSequence.new{
+									ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
+									ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
+								},
+								Enabled = false,
+								Parent = optionlbl
+							})
+	
+							local lineGradient = create("UIGradient", {
+								Color = ColorSequence.new{
+									ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
+									ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
+								},
+								Enabled = false,
+								Parent = line
+							})
+	
+							local itembtn = create("TextButton", {
+								BackgroundTransparency = 1,
+								Size = UDim2.new(1, 0, 1, 0),
+								Text = "",
+								Parent = itemholder
+							})
+	
+							local optdata = {
+								name = optname,
+								holder = itemholder,
+								text = optionlbl,
+								line = line,
+								gradient = optionGradient,
+								lineGradient = lineGradient,
+								selected = false
+							}
+	
+							local function setselected(selected)
+								optdata.selected = selected
+								if selected then
+									-- Selected state with gradient
+									tween(itemholder, {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.98}, 0.15)
+									tween(line, {Size = UDim2.new(0, 6, 0, 13), BackgroundColor3 = Color3.fromRGB(254, 254, 254)}, 0.2)
+									optionGradient.Enabled = true
+									lineGradient.Enabled = true
+								else
+									-- Unselected state
+									tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32), BackgroundTransparency = 0}, 0.15)
+									tween(optionlbl, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.15)
+									tween(line, {Size = UDim2.new(0, 0, 0, 13), BackgroundColor3 = library.colors.accent}, 0.15)
+									optionGradient.Enabled = false
+									lineGradient.Enabled = false
+								end
+							end
+	
+							itembtn.MouseEnter:Connect(function()
+								if not optdata.selected then
+									tween(itemholder, {BackgroundColor3 = Color3.fromRGB(30, 32, 40)}, 0.15)
+								end
 							end)
+	
+							itembtn.MouseLeave:Connect(function()
+								if not optdata.selected then
+									tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32)}, 0.15)
+								end
+							end)
+	
+							itembtn.MouseButton1Click:Connect(function()
+								if dmulti then
+									-- Multi-select mode
+									local idx = table.find(dropdown.value, optname)
+									if idx then
+										table.remove(dropdown.value, idx)
+										setselected(false)
+									else
+										table.insert(dropdown.value, optname)
+										setselected(true)
+									end
+								else
+									-- Single-select mode
+									dropdown.value = optname
+									for _, other in pairs(dropdown.optionframes) do
+										other.setselected(false)
+									end
+									setselected(true)
+									dropdown:toggle()
+								end
+	
+								if dflag then library.flags[dflag] = dropdown.value end
+								updatetext()
+								task.spawn(function()
+									safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
+								end)
+							end)
+	
+							optdata.setselected = setselected
+							dropdown.optionframes[optname] = optdata
+							return optdata
+						end
+	
+						-- Create all options
+						for _, opt in ipairs(doptions) do
+							createoption(opt)
+						end
+	
+						local maxvisible = 6
+						local itemheight = 22
+	
+						-- Toggle dropdown open/close
+						function dropdown:toggle()
+							dropdown.isopen = not dropdown.isopen
+							if dropdown.isopen then
+								dropdownContainer.Visible = true
+								dframe.ZIndex = 100
+								holder.ZIndex = 100
+								
+								-- Calculate target height
+								local count = 0
+								for _ in pairs(dropdown.optionframes) do count = count + 1 end
+								local targetheight = math.min(count, maxvisible) * itemheight
+								
+								-- Animate opening
+								tween(dropdownContainer, {Size = UDim2.new(1, 0, 0, targetheight)}, 0.25)
+								tween(arrow, {Rotation = 180}, 0.25)
+							else
+								dframe.ZIndex = 1
+								holder.ZIndex = 1
+								
+								-- Animate closing
+								tween(dropdownContainer, {Size = UDim2.new(1, 0, 0, 1)}, 0.2)
+								tween(arrow, {Rotation = 0}, 0.25)
+								
+								task.delay(0.2, function()
+									if not dropdown.isopen then
+										dropdownContainer.Visible = false
+									end
+								end)
+							end
+						end
+	
+						-- Click handler for main holder
+						holderBtn.MouseButton1Click:Connect(function()
+							dropdown:toggle()
 						end)
-
-						optdata.setselected = setselected
-						dropdown.optionframes[optname] = optdata
-						return optdata
-					end
-
-					for _, opt in ipairs(doptions) do
-						createoption(opt)
-					end
-
-					local maxvisible = 6
-					local itemheight = 22
-
-					function dropdown:toggle()
-						dropdown.isopen = not dropdown.isopen
-						if dropdown.isopen then
-							dropdownList.Visible = true
-							dframe.ZIndex = 10
-							local count = 0
-							for _ in pairs(dropdown.optionframes) do count = count + 1 end
-							local targetheight = math.min(count, maxvisible) * itemheight
-							tween(dropdownList, {Size = UDim2.new(1, 0, 0, targetheight)}, 0.25)
-							tween(arrow, {Rotation = 180}, 0.25)
-						else
-							dframe.ZIndex = 1
-							tween(dropdownList, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
-							tween(arrow, {Rotation = 0}, 0.25)
-							task.delay(0.2, function()
-								if not dropdown.isopen then
-									dropdownList.Visible = false
+	
+						-- Close dropdown when clicking outside
+						userinput.InputBegan:Connect(function(input)
+							if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.isopen then
+								local mouse = userinput:GetMouseLocation()
+								local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
+								local cpos, csize = dropdownContainer.AbsolutePosition, dropdownContainer.AbsoluteSize
+	
+								local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
+								local incontainer = mouse.X >= cpos.X and mouse.X <= cpos.X + csize.X and mouse.Y >= cpos.Y and mouse.Y <= cpos.Y + csize.Y
+	
+								if not inholder and not incontainer then
+									dropdown:toggle()
 								end
-							end)
-						end
-					end
-
-					holderBtn.MouseButton1Click:Connect(function()
-						dropdown:toggle()
-					end)
-
-					userinput.InputBegan:Connect(function(input)
-						if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.isopen then
-							local mouse = userinput:GetMouseLocation()
-							local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
-							local lpos, lsize = dropdownList.AbsolutePosition, dropdownList.AbsoluteSize
-
-							local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
-							local inlist = mouse.X >= lpos.X and mouse.X <= lpos.X + lsize.X and mouse.Y >= lpos.Y and mouse.Y <= lpos.Y + lsize.Y
-
-							if not inholder and not inlist then
-								dropdown:toggle()
 							end
-						end
-					end)
-
-					function dropdown:set(val, nocallback)
-						if dmulti then
-							if type(val) == "table" then
+						end)
+	
+						-- Set dropdown value programmatically
+						function dropdown:set(val, nocallback)
+							if dmulti then
+								if type(val) == "table" then
+									dropdown.value = val
+									for _, opt in pairs(dropdown.optionframes) do opt.setselected(false) end
+									for _, v in ipairs(val) do
+										if dropdown.optionframes[v] then dropdown.optionframes[v].setselected(true) end
+									end
+								end
+							else
 								dropdown.value = val
 								for _, opt in pairs(dropdown.optionframes) do opt.setselected(false) end
-								for _, v in ipairs(val) do
-									if dropdown.optionframes[v] then dropdown.optionframes[v].setselected(true) end
-								end
+								if dropdown.optionframes[val] then dropdown.optionframes[val].setselected(true) end
 							end
-						else
-							dropdown.value = val
-							for _, opt in pairs(dropdown.optionframes) do opt.setselected(false) end
-							if dropdown.optionframes[val] then dropdown.optionframes[val].setselected(true) end
+							updatetext()
+							if dflag then library.flags[dflag] = dropdown.value end
+							if not nocallback then
+								task.spawn(function()
+									safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
+								end)
+							end
 						end
-						updatetext()
-						if dflag then library.flags[dflag] = dropdown.value end
-						if not nocallback then
-							task.spawn(function()
-								safecall(tab.window, "Dropdown: " .. dname, dcallback, dropdown.value)
-							end)
+	
+						-- Refresh dropdown with new options
+						function dropdown:refresh(newoptions)
+							for _, v in pairs(dropdown.optionframes) do v.holder:Destroy() end
+							dropdown.optionframes = {}
+							dropdown.options = newoptions
+							dropdown.value = dmulti and {} or nil
+							for _, opt in ipairs(newoptions) do createoption(opt) end
+							updatetext()
 						end
+	
+						-- Set default value
+						if ddefault then dropdown:set(ddefault, true) end
+	
+						table.insert(section.elements, dropdown)
+						return dropdown
 					end
-
-					function dropdown:refresh(newoptions)
-						for _, v in pairs(dropdown.optionframes) do v.holder:Destroy() end
-						dropdown.optionframes = {}
-						dropdown.options = newoptions
-						dropdown.value = dmulti and {} or nil
-						for _, opt in ipairs(newoptions) do createoption(opt) end
-						updatetext()
-					end
-
-					if ddefault then dropdown:set(ddefault, true) end
-
-					table.insert(section.elements, dropdown)
-					return dropdown
-				end
 
 
 				return section
