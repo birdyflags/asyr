@@ -970,12 +970,12 @@ function library:create(cfg)
 							Parent = secholder
 						})
 
-						-- Label
+						-- Label (aligned with toggle labels at x=14)
 						create("TextLabel", {
 							Name = "label",
 							BackgroundTransparency = 1,
-							Position = UDim2.new(0, 25, 0, 12),
-							Size = UDim2.new(0, 1, 0, 1),
+							Position = UDim2.new(0, 14, 0, 8),
+							Size = UDim2.new(1, -28, 0, 16),
 							Font = Enum.Font.Gotham,
 							Text = dname,
 							TextColor3 = Color3.fromRGB(204, 204, 209),
@@ -984,15 +984,15 @@ function library:create(cfg)
 							Parent = dframe
 						})
 
-						-- Main dropdown holder (the clickable bar)
+						-- Main dropdown holder (the clickable bar, aligned with section)
 						local holder = create("Frame", {
 							Name = "holder",
-							AnchorPoint = Vector2.new(0.5, 0),
+							AnchorPoint = Vector2.new(0, 0),
 							BackgroundColor3 = Color3.fromRGB(24, 25, 32),
 							BorderSizePixel = 0,
 							ClipsDescendants = true,
-							Position = UDim2.new(0.5, 0, 0, 30),
-							Size = UDim2.new(1, -46, 0, 22),
+							Position = UDim2.new(0, 14, 0, 28),
+							Size = UDim2.new(1, -28, 0, 22),
 							Parent = dframe
 						})
 						create("UICorner", {CornerRadius = UDim.new(0, 2), Parent = holder})
@@ -1014,29 +1014,29 @@ function library:create(cfg)
 							Parent = holder
 						})
 
-						-- Left accent line on holder
+						-- Left accent line on holder (matches section accent line style)
 						local lineLeft = create("Frame", {
 							Name = "lineLeft",
 							AnchorPoint = Vector2.new(0, 0.5),
 							BackgroundColor3 = library.colors.accent,
 							BorderSizePixel = 0,
-							Position = UDim2.new(0, -4, 0.5, 0),
-							Size = UDim2.new(0, 6, 0, 13),
+							Position = UDim2.new(0, -5, 0.5, 0),
+							Size = UDim2.new(0, 3, 0, 16),
 							Parent = holder
 						})
-						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineLeft})
+						create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = lineLeft})
 
-						-- Right accent line on holder
+						-- Right accent line on holder (matches section accent line style)
 						local lineRight = create("Frame", {
 							Name = "lineRight",
 							AnchorPoint = Vector2.new(1, 0.5),
 							BackgroundColor3 = library.colors.accent,
 							BorderSizePixel = 0,
-							Position = UDim2.new(1, 4, 0.5, 0),
-							Size = UDim2.new(0, 6, 0, 13),
+							Position = UDim2.new(1, 5, 0.5, 0),
+							Size = UDim2.new(0, 3, 0, 16),
 							Parent = holder
 						})
-						create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = lineRight})
+						create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = lineRight})
 
 						-- Arrow indicator
 						local arrow = create("ImageLabel", {
@@ -1142,26 +1142,7 @@ function library:create(cfg)
 								ZIndex = 1002,
 								Parent = itemholder
 							})
-							create("UICorner", {CornerRadius = UDim.new(0, 30), Parent = line})
-
-							-- Gradient for selected state (matching your mockup)
-							local optionGradient = create("UIGradient", {
-								Color = ColorSequence.new{
-									ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-									ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-								},
-								Enabled = false,
-								Parent = optionlbl
-							})
-
-							local lineGradient = create("UIGradient", {
-								Color = ColorSequence.new{
-									ColorSequenceKeypoint.new(0, Color3.fromRGB(254, 254, 254)),
-									ColorSequenceKeypoint.new(1, Color3.fromRGB(147, 147, 147))
-								},
-								Enabled = false,
-								Parent = line
-							})
+							create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = line})
 
 							local itembtn = create("TextButton", {
 								BackgroundTransparency = 1,
@@ -1176,8 +1157,6 @@ function library:create(cfg)
 								holder = itemholder,
 								text = optionlbl,
 								line = line,
-								gradient = optionGradient,
-								lineGradient = lineGradient,
 								selected = false
 							}
 
@@ -1185,15 +1164,12 @@ function library:create(cfg)
 								optdata.selected = selected
 								if selected then
 									tween(itemholder, {BackgroundColor3 = Color3.fromRGB(255, 255, 255), BackgroundTransparency = 0.98}, 0.15)
-									tween(line, {Size = UDim2.new(0, 6, 0, 13), BackgroundColor3 = Color3.fromRGB(254, 254, 254)}, 0.2)
-									optionGradient.Enabled = true
-									lineGradient.Enabled = true
+									tween(optionlbl, {TextColor3 = library.colors.accent}, 0.15)
+									tween(line, {Size = UDim2.new(0, 3, 0, 13)}, 0.2)
 								else
 									tween(itemholder, {BackgroundColor3 = Color3.fromRGB(24, 25, 32), BackgroundTransparency = 0}, 0.15)
 									tween(optionlbl, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.15)
-									tween(line, {Size = UDim2.new(0, 0, 0, 13), BackgroundColor3 = library.colors.accent}, 0.15)
-									optionGradient.Enabled = false
-									lineGradient.Enabled = false
+									tween(line, {Size = UDim2.new(0, 0, 0, 13)}, 0.15)
 								end
 							end
 
