@@ -70,7 +70,7 @@ function library:create(cfg)
 	local gui = create("ScreenGui", {
 		Name = "zzzlib",
 		ResetOnSpawn = false,
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+		ZIndexBehavior = Enum.ZIndexBehavior.Global
 	})
 
 	if syn and syn.protect_gui then
@@ -1086,8 +1086,7 @@ function library:create(cfg)
 						local function repositionPopup()
 							local absPos = holder.AbsolutePosition
 							local absSize = holder.AbsoluteSize
-							local guiInset = game:GetService("GuiService"):GetGuiInset()
-							dropdownPopup.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2 - guiInset.Y)
+							dropdownPopup.Position = UDim2.new(0, absPos.X, 0, absPos.Y + absSize.Y + 2)
 							dropdownPopup.Size = UDim2.new(0, absSize.X, 0, dropdownPopup.Size.Y.Offset)
 						end
 
@@ -1122,12 +1121,13 @@ function library:create(cfg)
 								Name = "Option",
 								AnchorPoint = Vector2.new(0, 0.5),
 								BackgroundTransparency = 1,
-								Position = UDim2.new(0.025, 0, 0.5, 0),
-								Size = UDim2.new(0, 1, 0, 1),
+								Position = UDim2.new(0, 10, 0.5, 0),
+								Size = UDim2.new(1, -20, 1, 0),
 								Font = Enum.Font.Gotham,
 								Text = optname,
 								TextColor3 = Color3.fromRGB(255, 255, 255),
 								TextSize = 13,
+								TextXAlignment = Enum.TextXAlignment.Left,
 								ZIndex = 1001,
 								Parent = itemholder
 							})
@@ -1137,7 +1137,7 @@ function library:create(cfg)
 								AnchorPoint = Vector2.new(0, 0.5),
 								BackgroundColor3 = library.colors.accent,
 								BorderSizePixel = 0,
-								Position = UDim2.new(0, -4, 0.5, 0),
+								Position = UDim2.new(0, 0, 0.5, 0),
 								Size = UDim2.new(0, 0, 0, 13),
 								ZIndex = 1002,
 								Parent = itemholder
@@ -1288,14 +1288,12 @@ function library:create(cfg)
 						userinput.InputBegan:Connect(function(input)
 							if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.isopen then
 								local mouse = userinput:GetMouseLocation()
-								local guiInset = game:GetService("GuiService"):GetGuiInset()
-								local adjustedMouse = Vector2.new(mouse.X, mouse.Y - guiInset.Y)
 
 								local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
 								local ppos, psize = dropdownPopup.AbsolutePosition, dropdownPopup.AbsoluteSize
 
-								local inholder = adjustedMouse.X >= hpos.X and adjustedMouse.X <= hpos.X + hsize.X and adjustedMouse.Y >= hpos.Y and adjustedMouse.Y <= hpos.Y + hsize.Y
-								local inpopup = adjustedMouse.X >= ppos.X and adjustedMouse.X <= ppos.X + psize.X and adjustedMouse.Y >= ppos.Y and adjustedMouse.Y <= ppos.Y + psize.Y
+								local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
+								local inpopup = mouse.X >= ppos.X and mouse.X <= ppos.X + psize.X and mouse.Y >= ppos.Y and mouse.Y <= ppos.Y + psize.Y
 
 								if not inholder and not inpopup then
 									dropdown:toggle()
