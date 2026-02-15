@@ -1234,23 +1234,26 @@ function library:create(cfg)
 							if dropdown.isopen then
 								-- Position the popup right below the holder
 								repositionPopup()
-								dropdownPopup.Visible = true
-
+								
 								-- Calculate target height
 								local count = 0
 								for _ in pairs(dropdown.optionframes) do count = count + 1 end
 								local targetheight = math.min(count, maxvisible) * itemheight
 								local absSize = holder.AbsoluteSize
 
-								-- Animate opening
-								tween(dropdownPopup, {Size = UDim2.new(0, absSize.X, 0, targetheight)}, 0.25)
+								-- Set size immediately so hit detection works, then animate via canvas
+								dropdownPopup.Size = UDim2.new(0, absSize.X, 0, targetheight)
+								dropdownPopup.CanvasPosition = Vector2.new(0, 0)
+								dropdownPopup.Visible = true
+
 								tween(arrow, {Rotation = 180}, 0.25)
 							else
-								local absSize = holder.AbsoluteSize
-								-- Animate closing
-								tween(dropdownPopup, {Size = UDim2.new(0, absSize.X, 0, 0)}, 0.2)
 								tween(arrow, {Rotation = 0}, 0.25)
 
+								-- Animate closing
+								local absSize = holder.AbsoluteSize
+								tween(dropdownPopup, {Size = UDim2.new(0, absSize.X, 0, 0)}, 0.2)
+								
 								task.delay(0.2, function()
 									if not dropdown.isopen then
 										dropdownPopup.Visible = false
@@ -1264,16 +1267,16 @@ function library:create(cfg)
 							dropdown:toggle()
 						end)
 
-						-- Close dropdown when clicking outside (delayed by 1 frame so option clicks process first)
-						userinput.InputBegan:Connect(function(input)
+						-- Close dropdown when clicking outside
+						-- Use InputEnded instead of InputBegan so option MouseButton1Click fires first
+						userinput.InputEnded:Connect(function(input)
 							if input.UserInputType == Enum.UserInputType.MouseButton1 and dropdown.isopen then
 								task.defer(function()
 									if not dropdown.isopen then return end
-									local mouse = userinput:GetMouseLocation()
-
+									local mouse = input.Position
+									
 									local hpos, hsize = holder.AbsolutePosition, holder.AbsoluteSize
 									local ppos = dropdownPopup.AbsolutePosition
-									local pcanvas = dropdownPopup.AbsoluteCanvasSize
 									local psize = dropdownPopup.AbsoluteSize
 
 									local inholder = mouse.X >= hpos.X and mouse.X <= hpos.X + hsize.X and mouse.Y >= hpos.Y and mouse.Y <= hpos.Y + hsize.Y
