@@ -240,7 +240,7 @@ function library:create(cfg)
 
 	main.Size = UDim2.new(0, 0, 0, 0)
 	main.BackgroundTransparency = 1
-	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0.3}, 0.45, Enum.EasingStyle.Back)
+	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0}, 0.45, Enum.EasingStyle.Back)
 
 	function window:addtab(cfg)
 		cfg = cfg or {}
@@ -288,17 +288,30 @@ function library:create(cfg)
 		})
 
 		local indicator = create("Frame", {
-			Name = "indicator_" .. name,
-			AnchorPoint = Vector2.new(0.5, 0),
+			Name = "indicator",
+			AnchorPoint = Vector2.new(1, 0.5),
 			BackgroundColor3 = library.colors.accent,
-			BackgroundTransparency = 0,
 			BorderSizePixel = 0,
-			Position = UDim2.new(0, 2, 0, 0),
+			Position = UDim2.new(1, 3, 0.5, 0),
 			Size = UDim2.new(0, 4, 0, 0),
 			ZIndex = 5,
-			Parent = sidebar
+			Parent = btn
 		})
 		create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = indicator})
+
+		-- Glow image behind indicator
+		local indicatorGlow = create("ImageLabel", {
+			Name = "glow",
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Position = UDim2.new(0.5, 0, 0.5, 0),
+			Size = UDim2.new(0, 40, 0, 60),
+			Image = "rbxassetid://5028857084",
+			ImageColor3 = library.colors.accent,
+			ImageTransparency = 0.65,
+			ZIndex = 4,
+			Parent = indicator
+		})
 
 		tab.btn = btn
 		tab.icon = icn
@@ -1393,12 +1406,7 @@ function library:create(cfg)
 
 		window.activetab = tab
 
-		-- Position the indicator next to the active tab button
-		local btnPos = tab.btn.AbsolutePosition
-		local sidebarPos = sidebar.AbsolutePosition
-		local yOffset = btnPos.Y - sidebarPos.Y + (tab.btn.AbsoluteSize.Y / 2) - 17
 
-		tab.indicator.Position = UDim2.new(0, 2, 0, yOffset)
 
 		tween(tab.btn, {BackgroundTransparency = 0.9}, 0.25)
 		tween(tab.icon, {ImageColor3 = library.colors.accent}, 0.25)
