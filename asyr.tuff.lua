@@ -240,7 +240,7 @@ function library:create(cfg)
 
 	main.Size = UDim2.new(0, 0, 0, 0)
 	main.BackgroundTransparency = 1
-	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0}, 0.45, Enum.EasingStyle.Back)
+	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0.3}, 0.45, Enum.EasingStyle.Back)
 
 	function window:addtab(cfg)
 		cfg = cfg or {}
@@ -258,7 +258,7 @@ function library:create(cfg)
 			BackgroundColor3 = library.colors.text,
 			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
-			ClipsDescendants = true,
+			ClipsDescendants = false,
 			Size = UDim2.new(0, 55, 0, 60),
 			Parent = tabholder
 		})
@@ -292,8 +292,8 @@ function library:create(cfg)
 			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = library.colors.accent,
 			BorderSizePixel = 0,
-			Position = UDim2.new(0, -3, 0.5, 0),
-			Size = UDim2.new(0, 3, 0, 0),
+			Position = UDim2.new(0, -5, 0.5, 0),
+			Size = UDim2.new(0, 4, 0, 0),
 			Parent = btn
 		})
 		create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = indicator})
@@ -1383,7 +1383,7 @@ function library:create(cfg)
 			tween(old.btn, {BackgroundTransparency = 1}, 0.25)
 			tween(old.icon, {ImageColor3 = library.colors.subtext}, 0.25)
 			tween(old.label, {TextColor3 = library.colors.subtext}, 0.25)
-			tween(old.indicator, {Size = UDim2.new(0, 3, 0, 0)}, 0.25)
+			tween(old.indicator, {Size = UDim2.new(0, 4, 0, 0)}, 0.25)
 
 			for _, sub in ipairs(old.subpages) do
 				sub.btn.Visible = false
@@ -1399,7 +1399,7 @@ function library:create(cfg)
 		tween(tab.btn, {BackgroundTransparency = 0.9}, 0.25)
 		tween(tab.icon, {ImageColor3 = library.colors.accent}, 0.25)
 		tween(tab.label, {TextColor3 = library.colors.text}, 0.25)
-		tween(tab.indicator, {Size = UDim2.new(0, 3, 0, 30)}, 0.3, Enum.EasingStyle.Back)
+		tween(tab.indicator, {Size = UDim2.new(0, 4, 0, 35)}, 0.3, Enum.EasingStyle.Back)
 
 		for _, sub in ipairs(tab.subpages) do
 			sub.btn.Visible = true
