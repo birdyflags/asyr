@@ -289,10 +289,10 @@ function library:create(cfg)
 
 		local indicator = create("Frame", {
 			Name = "indicator",
-			AnchorPoint = Vector2.new(1, 0.5),
+			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = library.colors.accent,
 			BorderSizePixel = 0,
-			Position = UDim2.new(1, 3, 0.5, 0),
+			Position = UDim2.new(0, -8, 0.5, 0),
 			Size = UDim2.new(0, 4, 0, 0),
 			ZIndex = 5,
 			Parent = btn
@@ -305,10 +305,10 @@ function library:create(cfg)
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
 			Position = UDim2.new(0.5, 0, 0.5, 0),
-			Size = UDim2.new(0, 40, 0, 60),
+			Size = UDim2.new(0, 50, 0, 70),
 			Image = "rbxassetid://5028857084",
 			ImageColor3 = library.colors.accent,
-			ImageTransparency = 0.65,
+			ImageTransparency = 0.4,
 			ZIndex = 4,
 			Parent = indicator
 		})
