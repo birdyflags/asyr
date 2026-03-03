@@ -288,20 +288,17 @@ function library:create(cfg)
 		})
 
 		local indicator = create("Frame", {
-			Name = "indicator",
-			AnchorPoint = Vector2.new(0, 0.5),
+			Name = "indicator_" .. name,
+			AnchorPoint = Vector2.new(0.5, 0),
 			BackgroundColor3 = library.colors.accent,
+			BackgroundTransparency = 0,
 			BorderSizePixel = 0,
-			Position = UDim2.new(0, -5, 0.5, 0),
+			Position = UDim2.new(0, 2, 0, 0),
 			Size = UDim2.new(0, 4, 0, 0),
-			Parent = btn
+			ZIndex = 5,
+			Parent = sidebar
 		})
 		create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = indicator})
-		create("UIGradient", {
-			Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))},
-			Rotation = 90,
-			Parent = indicator
-		})
 
 		tab.btn = btn
 		tab.icon = icn
@@ -1395,6 +1392,13 @@ function library:create(cfg)
 		end
 
 		window.activetab = tab
+
+		-- Position the indicator next to the active tab button
+		local btnPos = tab.btn.AbsolutePosition
+		local sidebarPos = sidebar.AbsolutePosition
+		local yOffset = btnPos.Y - sidebarPos.Y + (tab.btn.AbsoluteSize.Y / 2) - 17
+
+		tab.indicator.Position = UDim2.new(0, 2, 0, yOffset)
 
 		tween(tab.btn, {BackgroundTransparency = 0.9}, 0.25)
 		tween(tab.icon, {ImageColor3 = library.colors.accent}, 0.25)
