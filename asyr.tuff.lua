@@ -196,7 +196,7 @@ function library:create(cfg)
 	local pagecontainer = create("Frame", {
 		Name = "pages",
 		AnchorPoint = Vector2.new(1, 1),
-		BackgroundColor3 = library.colors.secondary,
+		BackgroundColor3 = Color3.fromRGB(25, 26, 31), -- Slightly lighter for acrylic effect
 		BackgroundTransparency = 0.5,
 		BorderSizePixel = 0,
 		ClipsDescendants = true,
@@ -240,7 +240,7 @@ function library:create(cfg)
 
 	main.Size = UDim2.new(0, 0, 0, 0)
 	main.BackgroundTransparency = 1
-	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0.15}, 0.45, Enum.EasingStyle.Back)
+	tween(main, {Size = UDim2.new(0, 695, 0, 489), BackgroundTransparency = 0}, 0.45, Enum.EasingStyle.Back)
 
 	function window:addtab(cfg)
 		cfg = cfg or {}
@@ -253,59 +253,35 @@ function library:create(cfg)
 			activesubpage = nil
 		}
 
-		local btn = create("Frame", {
-			Name = name,
+		local indicator = create("Frame", {
+			Name = "indicator",
+			AnchorPoint = Vector2.new(0, 0.5),
 			BackgroundColor3 = library.colors.accent,
-			BackgroundTransparency = 1,
 			BorderSizePixel = 0,
-			ClipsDescendants = false,
-			Size = UDim2.new(0, 55, 0, 55),
-			Parent = tabholder
-		})
-		create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = btn})
-
-		local icn = create("ImageLabel", {
-			Name = "icon",
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundTransparency = 1,
-			Position = UDim2.new(0.5, 0, 0.5, -8),
-			Size = UDim2.new(0, 24, 0, 22),
-			Image = tabicon,
-			ImageColor3 = library.colors.subtext,
+			Position = UDim2.new(0, -8, 0.5, 0),
+			Size = UDim2.new(0, 3, 0, 0),
 			Parent = btn
 		})
+		create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = indicator})
 
-		local lbl = create("TextLabel", {
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundTransparency = 1,
-			Position = UDim2.new(0.5, 0, 0.5, 20),
-			Size = UDim2.new(1, 0, 0, 20),
-			Font = Enum.Font.GothamMedium,
-			Text = name,
-			TextColor3 = library.colors.subtext,
-			TextSize = 11,
-			Parent = btn
-		})
-
-		-- Glow image behind active tab
-		local tabGlow = create("ImageLabel", {
+		local indicatorGlow = create("ImageLabel", {
 			Name = "glow",
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
 			Position = UDim2.new(0.5, 0, 0.5, 0),
-			Size = UDim2.new(1, 30, 1, 30),
-			Image = "rbxassetid://5028857084",
+			Size = UDim2.new(0, 20, 2, 0),
+			Image = "rbxassetid://6015667154",
 			ImageColor3 = library.colors.accent,
 			ImageTransparency = 1,
 			ZIndex = 0,
-			Parent = btn
+			Parent = indicator
 		})
 
 		tab.btn = btn
 		tab.icon = icn
 		tab.label = lbl
-		tab.indicator = btn
-		tab.glow = tabGlow
+		tab.indicator = indicator
+		tab.glow = indicatorGlow
 		tab.window = window
 
 		local click = create("TextButton", {BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0), Text = "", Parent = btn})
@@ -1382,6 +1358,7 @@ function library:create(cfg)
 			tween(old.btn, {BackgroundTransparency = 1}, 0.25)
 			tween(old.icon, {ImageColor3 = library.colors.subtext}, 0.25)
 			tween(old.label, {TextColor3 = library.colors.subtext}, 0.25)
+			tween(old.indicator, {Size = UDim2.new(0, 3, 0, 0)}, 0.25)
 			tween(old.glow, {ImageTransparency = 1}, 0.25)
 
 			for _, sub in ipairs(old.subpages) do
@@ -1395,10 +1372,11 @@ function library:create(cfg)
 
 		window.activetab = tab
 
-		tween(tab.btn, {BackgroundTransparency = 0.7}, 0.25)
+		tween(tab.btn, {BackgroundTransparency = 0.9}, 0.25)
 		tween(tab.icon, {ImageColor3 = library.colors.accent}, 0.25)
 		tween(tab.label, {TextColor3 = library.colors.text}, 0.25)
-		tween(tab.glow, {ImageTransparency = 0.5}, 0.3, Enum.EasingStyle.Back)
+		tween(tab.indicator, {Size = UDim2.new(0, 3, 0, 32)}, 0.3, Enum.EasingStyle.Back)
+		tween(tab.glow, {ImageTransparency = 0.5}, 0.3)
 
 		for _, sub in ipairs(tab.subpages) do
 			sub.btn.Visible = true
